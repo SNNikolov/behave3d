@@ -1317,6 +1317,7 @@ Behave3d.Element.prototype.getControllerIndex = function(controller_instance)
 
 //---------------------------------------
 // Returns a reference to the HTML element supplied either by id or reference
+// element_or_id can also be one of the special strings "@this" / "@parent" / "@ancestor"
 // If return_behave3d is true, then the HTML element's behave3d property is returned
 Behave3d.Element.prototype.getDOMElement = function(element_or_id, return_behave3d)
 {
@@ -1325,12 +1326,12 @@ Behave3d.Element.prototype.getDOMElement = function(element_or_id, return_behave
 	if (typeof element_or_id == "string")
 		element_or_id = element_or_id.toLowerCase();
 		
-	if (element_or_id === "this")
+	if (element_or_id === "@this")
 		dom_element = this.element;
-	else if (element_or_id === "parent")
+	else if (element_or_id === "@parent")
 		// Set target element to the parentNode in the DOM
 		dom_element = this.element.parentNode;
-	else if (element_or_id === "ancestor") {
+	else if (element_or_id === "@ancestor") {
 		// Find the closest parentNode in the DOM that is behave3d 
 		dom_element = this.element.parentNode;
 		while (dom_element && !Behave3d(dom_element, false))
@@ -2133,9 +2134,18 @@ Behave3d.Controller.prototype.registerActions = function(actions_target, action_
 {
 	if (!actions_target) return this;
 	
-	var at_parts = (typeof actions_target == "string" ? actions_target.split(" ") : [0, ""]);
-	var delay    = at_parts[0];
-	var element  = at_parts[1];
+	var delay   = 0;
+	var element = "";
+	
+	if (typeof actions_target == "string" &&
+		actions_target.length > 0)
+	{
+		var at_parts = actions_target.split(" ");
+		delay = Number(at_parts[0]);
+		element = at_parts[1] || "";
+	}
+	else if (typeof actions_target == "number")
+		delay = actions_target;	
 	
 	var prefix_immediate = (element ? element + " " : "");
 	var prefix           = (delay ? delay + " after " : "") + prefix_immediate;

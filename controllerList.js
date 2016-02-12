@@ -38,8 +38,8 @@ Behave3d.controllerList.prototype.events         = [
 	"reset",         // Triggered on message "reset"
 	"focus",         // Triggered on changing focus (messages "focus_xxx") event_params = {focused: focused_item_index, step: size_of_focus_change}
 	"select",        // Triggered on changing selection (messages "select"/"unselect"); event_params = {selected: selected_item_index or [array of indexes]}
-	"last_reached",  // Triggered on focusing the first item
-	"first_reached", // Triggered on focusing the last item
+	"first_reached", // Triggered on focusing the first item
+	"last_reached",  // Triggered on focusing the last item
 	"border_left",   // Triggered on the first or last item losing focus
 	"no_prev",       // Triggered on trying to focus index < 0
 	"no_next",       // Triggered on trying to focus after last item

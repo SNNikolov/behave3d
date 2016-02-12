@@ -87,11 +87,6 @@ Behave3d.controllerRotate.prototype.message = function(message, message_params)
 	if (this.handleCommonMessage(message, message_params)) return this;	
 	message_params = this.setMessageParams(message, message_params);
 	
-	if (this.angle == 0) {
-		this.stepper.stop();
-		return this;
-	}
-	
 	this.direction  = (message == "start" || message == "start_new" || message == "pos1" || (message == "start_reverse" && this.direction != 1)) ? 1 : -1;
 	var duration    = (message == "pos0" || message == "pos1") ? 0 : this.duration;
 	var new_start   = (message == "start_new" || message == "start_new_back");

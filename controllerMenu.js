@@ -27,7 +27,6 @@ Behave3d.controllerMenu.prototype.messages       = [
 	"hide",             // Hide the menu
 	"hide_immediately", // Hide the menu without transitions
 	"button_clicked",   // Tell the menu the button opening it is clicked
-	"focus",            // Sets the focus on the supplied item, params = {focused: item_index}
 ];
 Behave3d.controllerMenu.prototype.events         = [
 	"focus",              // Triggered on the menu receiving focus
@@ -43,9 +42,9 @@ Behave3d.controllerMenu.prototype.events         = [
 Behave3d.controllerMenu.prototype.default_params = {
 	parent_menu        : null,   // Reference to parent menu controller
 	show_button        : null,   // Reference to HTML element which opens this menu upon clicking
-	collapse_subs      : !false, // If true, then all-submenus will be ordered to hide upon hiding of this one
+	collapse_subs      : true,   // If true, then all-submenus will be ordered to hide upon hiding of this one
 	hide_on_blur       : true,   // If true, then the menu will hide when focus is lost
-	align              : "rltt", // Alignment of menu relative to its show button; see 
+	align              : "rltt", // Alignment of menu relative to its show button; see Behave3d.controllerMenu.prototype.alignMenu
 	submenus_align     : "same", // Value of 'align' that will be applied onto submenus upon their creation; "same" for same value as this.align
 	highlight_class    : "",     // Style class to be applied on active menu items
 	for_each_item      : "",     // Name of or reference to a callback function to be called for each item of this menu and its submenus; callback(parent_menu, item_index, item_link, sub_menu), where parent_menu = this menu, item_index = index of item within menu, item_link = reference to first child of item's HTML element, this = item's HTML element, sub_menu = reference to submenu controller if this item opens a submenu
@@ -180,8 +179,6 @@ Behave3d.controllerMenu.prototype.createMenuStructure = function(menu_controller
 
 	if (this.for_each_menu)
 		this.for_each_menu.bind(this)();
-	else
-		alert("cannot find fom");
 	
 	this.submenus   = [];
 	this.menu_items = [];
@@ -391,7 +388,7 @@ Behave3d.controllerMenu.prototype.applyShowButtonStyle = function()
 
 //---------------------------------------
 // Positions the menu relative to the supplied HTML element (align_to_element)
-// Format of align_type: "none" / "hhvv", where h can be l/m/r, and v can be t/m/b
+// Format of align_type: "none" / "hhvv", where h can be l/c/r, and v can be t/m/b
 Behave3d.controllerMenu.prototype.alignMenu = function(align_to_element, align_type)
 {
 	if (align_type == "" || align_type == "none" || !align_to_element) return false;

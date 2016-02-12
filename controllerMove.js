@@ -109,16 +109,11 @@ Behave3d.controllerMove.prototype.message = function(message, message_params)
 	var params_d    = this.getComputedLengths(['dx'], ['dy'], ['dz']);
 	var params_abs  = this.getComputedLengths(['x'], ['y'], ['z'], ["same"]);
 	
-	var movement_dx = (!use_abs_val && params_d.dx != 0) ? params_d.dx : (!use_dval && params_abs.x === "same") ? 0 : params_abs.x - this.stepper.getVar("x", true);
-	var movement_dy = (!use_abs_val && params_d.dy != 0) ? params_d.dy : (!use_dval && params_abs.y === "same") ? 0 : params_abs.y - this.stepper.getVar("y", true);
-	var movement_dz = (!use_abs_val && params_d.dz != 0) ? params_d.dz : (!use_dval && params_abs.z === "same") ? 0 : params_abs.z - this.stepper.getVar("z", true);
+	var dx = (!use_abs_val && (params_d.dx != 0 || !use_dval)) ? params_d.dx : (params_abs.x === "same") ? 0 : params_abs.x - this.stepper.getVar("x", true);
+	var dy = (!use_abs_val && (params_d.dy != 0 || !use_dval)) ? params_d.dy : (params_abs.y === "same") ? 0 : params_abs.y - this.stepper.getVar("y", true);
+	var dz = (!use_abs_val && (params_d.dz != 0 || !use_dval)) ? params_d.dz : (params_abs.z === "same") ? 0 : params_abs.z - this.stepper.getVar("z", true);
 
-	if (movement_dx == 0 && movement_dy == 0 && movement_dz == 0) {
-		this.stepper.stop();
-		return this;
-	}
-	
-	this.stepper.start(this.direction, this.repeat_start_pos, new_start, {x: movement_dx, y: movement_dy, z: movement_dz}, duration);
+	this.stepper.start(this.direction, this.repeat_start_pos, new_start, {x: dx, y: dy, z: dz}, duration);
 	this.paused = false;
 
 	return this;

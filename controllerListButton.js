@@ -37,24 +37,16 @@ Behave3d.controllerListButton.prototype.default_params = {
 	list           : "", // id of the source list of items, to which messages are sent and from which events are received
 	action         : "", // What message is sent to the list upon clicking the button
 	action_pos     : -1, // If the message requires a message_params.pos parameter, here it is, or -1 if no .pos message param is needed 
+	action_step    : 0,  // If the message requires a message_params.step parameter, here it is, or 0 if no .step message param is needed 
 	
 	// How should the button react on list events
-	// Possible values, space-delimited in a single string: "hide" / "change_class" / "move" / "fire" / "disable"
-	when_no_progress  : "", // Reaction upon the list firing "no_prev" / "no_next" event
-	when_on_border    : "", // Reaction upon the list firing "last_reached" / "first_reached" events
-	when_clicked      : "", // Reaction upon clicking the button
-	when_selection    : "", // Reaction upon the list firing "select" event
-		
-	duration      : 200,    // Duration in ms of all transitions
-	ease_type     : "ease", // See Behave3d.ease()
-	ease_amount   : 1,      // [0 , 1], see Behave3d.ease()
-	ease_mirror   : false,  // If true, then the easing applied on backwards transition will be the "mirror" one of the forward easing (ease_in <-> ease_out)
+	// Possible values, space-delimited in a single string: "change_class" / "fire" / "disable"
+	when_no_progress  : "fire", // Reaction upon the list firing "no_prev" / "no_next" event
+	when_on_border    : "fire", // Reaction upon the list firing "last_reached" / "first_reached" events
+	when_clicked      : "fire", // Reaction upon clicking the button
 	
+	back_delay    : 200,    // Delay in ms before the restoration from "change_class" and "disable" is played for "click", "no_prev" and "no_next" events
 	alt_class     : "",     // Name of style class to apply onto the element when "change_class" reaction is performed
-	move_relative : true,   // Are the supplied move_x, move_y and move_z relative or absolute coordinates
-	move_x        : 0,      // Movement target coordinates when "move" reaction is performed
-	move_y        : 0,
-	move_z        : 0,
 };
 
 
@@ -66,41 +58,15 @@ Behave3d.controllerListButton.prototype.construct = function(params, stage)
 {
 	if (stage == "params") {
 		this.handlers_set_for_list = "";
-		
-		var computed_params = this.getComputedLengths(['move_x'], ['move_y'], ['move_z']);
-		var move_params = this.move_relative ?
-				{
-					dx: computed_params.move_x,
-					dy: computed_params.move_y,
-					dz: computed_params.move_z
-				} : {
-					x: (computed_params.move_x != 0 ? computed_params.move_x : "same"),
-					y: (computed_params.move_y != 0 ? computed_params.move_y : "same"),
-					z: (computed_params.move_z != 0 ? computed_params.move_z : "same")
-				};
-		move_params.targets = this.targets;
-		
-		this.controller_move = this.owner.addController(Behave3d.controllerMove, move_params);
-		this.controller_vis  = this.owner.addController(Behave3d.controllerOpacity, {targets: this.targets});
 	}
 	else if (stage == "events") {
-		// Auto-update paused state of sub-controllers
-		this.on(["paused", "unpaused"], function() {
-			this.controller_move.set({paused: this.paused});
-			this.controller_vis.set({paused: this.paused});
-		});
-		
 		this.setEventHandlers();
-	}
-	else if (stage == "messages") {
-		
 	}
 };
 
 //---------------------------------------
 Behave3d.controllerListButton.prototype.destruct = function() {
-	this.owner.removeController(this.controller_move);
-	this.owner.removeController(this.controller_vis);
+
 };
 
 //---------------------------------------
@@ -115,16 +81,15 @@ Behave3d.controllerListButton.prototype.message = function(message, message_para
 	}
 	else if (message == "click") {
 		if (this.action) {
-			var action_params = (this.action_pos != -1) ? {pos: this.action_pos} : {};
+			var action_params = {};
+			if (this.action_pos != -1)
+				action_params.pos = this.action_pos;
+			if (this.action_step != 0)
+				action_params.step = this.action_step;
 			this.list_ref.message(this.action, action_params);
 		}
 		
-		if (this.when_clicked) {
-			this.doReaction(this.when_clicked);
-			setTimeout((function() {this.doReaction(this.when_clicked, true)}).bind(this), this.duration);
-		}
-		
-		this.fireEvent("click");
+		this.doReaction(this.when_clicked, "click");
 	}
 	
 	return this;
@@ -153,17 +118,20 @@ Behave3d.controllerListButton.prototype.setEventHandlers = function()
 //---------------------------------------
 // Performs the reactions supplied in do_what
 // If do_back is true, then the backward animations are performed
-Behave3d.controllerListButton.prototype.doReaction = function(do_what, do_back, event_type)
+Behave3d.controllerListButton.prototype.doReaction = function(do_what, event_type, do_back)
 {
-	do_what = do_what.trim().split(" ");
-	for (var i = 0; i < do_what.length; i++)
-		switch(do_what[i]) {
-			case "hide":
-				this.controller_vis.message(do_back ? "fade_in" : "fade_out", {duration: this.duration});
-				break;
-			case "move":
-				this.controller_move.message(do_back ? "start_back" : "start", {duration: this.duration});
-				break;
+	if (!do_what) return;
+	
+	// Schedule backwards animation
+	if (!do_back &&
+		do_what != "fire" &&
+		["click", "no_prev", "no_next"].indexOf(event_type) >= 0)
+		setTimeout((function() {this.doReaction(do_what, true, event_type)}).bind(this), this.back_delay);	
+
+	var do_what_parts = do_what.trim().split(" ");
+	
+	for (var i = 0; i < do_what_parts.length; i++)
+		switch(do_what_parts[i]) {
 			case "change_class":
 				if (this.alt_class) {
 					if (do_back) this.owner.element.classList.remove(this.alt_class);
@@ -175,7 +143,8 @@ Behave3d.controllerListButton.prototype.doReaction = function(do_what, do_back, 
 				this.owner.element.disabled = !do_back;
 				break;
 			case "fire":
-				this.fireEvent(event_type);
+				if (!do_back || event_type == "border_left")
+					this.fireEvent(event_type);
 				break;
 		}
 }
@@ -189,26 +158,19 @@ Behave3d.controllerListButton.prototype.handlerOfListEvents = function(event_typ
 	
 	switch(event_type) {
 		case "first_reached":
-			if (this.action != "focus_next") this.doReaction(this.when_on_border, false, "border_reached");
+			if (this.action != "focus_next") this.doReaction(this.when_on_border, "border_reached");
 			break;
 		case "last_reached":
-			if (this.action != "focus_prev") this.doReaction(this.when_on_border, false, "border_reached");
+			if (this.action != "focus_prev") this.doReaction(this.when_on_border, "border_reached");
 			break;
 		case "border_left":
-			this.doReaction(this.when_on_border, true, "border_left");
+			this.doReaction(this.when_on_border, "border_left", true);
 			break;
 			
 		case "no_prev":
-			if (this.action != "focus_next") {
-				this.doReaction(this.when_no_progress, false, "no_progress");
-				setTimeout((function() {this.doReaction(this.when_no_progress, true, "no_progress")}).bind(this), this.duration);
-			}
-			break;
 		case "no_next":
-			if (this.action != "focus_prev") {
-				this.doReaction(this.when_no_progress, false, "no_progress");
-				setTimeout((function() {this.doReaction(this.when_no_progress, true, "no_progress")}).bind(this), this.duration);
-			}
+			if (this.action != (event_type == "no_prev" ? "focus_next" : "focus_prev"))
+				this.doReaction(this.when_no_progress, "no_progress");
 			break;
 	}
 }

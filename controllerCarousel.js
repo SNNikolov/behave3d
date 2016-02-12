@@ -193,6 +193,7 @@ Behave3d.controllerCarousel.prototype.setItems = function()
 		target.element.style.position = "absolute";
 		target.element.style.left     = (carousel_center_x - this.targets[i].clientWidth / 2) + "px";
 		target.element.style.top      = (carousel_center_y - this.targets[i].clientHeight / 2) + "px";
+		target.element.style.transformOrigin = "50% 50% 0px";
 		
 		if (this.use_spring)
 			target.physics_enabled = true;

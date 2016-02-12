@@ -120,14 +120,9 @@ Behave3d.controllerProperty.prototype.message = function(message, message_params
 	
 	var movement_dval = (!use_abs_val && param_dval != 0) ? param_dval : (param_val === "same") ? 0 : param_val - this.stepper.getVar("val", true);
 
-	if (movement_dval == 0) {
-		this.stepper.stop();
-	}
-	else {
-		this.stepper.start(this.direction, this.repeat_start_pos, new_start, {val: movement_dval}, duration);
-		this.paused = false;
-	}
-
+	this.stepper.start(this.direction, this.repeat_start_pos, new_start, {val: movement_dval}, duration);
+	this.paused = false;
+	
 	return this;
 };
 
