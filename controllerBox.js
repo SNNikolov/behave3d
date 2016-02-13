@@ -105,8 +105,6 @@ Behave3d.controllerBox.prototype.setSides = function()
 		Behave3d.debugExit("controllerBox requires 6 child HTML elements which will become the sides of the box");
 	
 	this.computed_params = this.getComputedLengths(['x_size'], ['y_size'], ['z_size']);
-	if (this.computed_params.x_size == 0 || this.computed_params.y_size == 0)
-		return;
 	
 	// Set each side's sizes
 	for (var i = 0; i < 6; i++) {

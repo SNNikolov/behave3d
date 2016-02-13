@@ -45,7 +45,7 @@ Behave3d.controllerProperty.prototype.default_params = {
 	name         : "",     // Name of HTML element property
 	val          : "same", // Absolute target value, or "same"
 	dval         : 0,      // Target value relative to current value (overrides absolute target value if != 0)
-	init_val     : "same", // Initial X displacement
+	init_val     : "same", // Initial value of the property
 	is_v_coo     : false,  // How to interpret %s - as horizontal coordinate/length (default), or as vertical coordinate/length
 	suffix       : "",     // String representing the units of the property, appended to the end of the value
 	precision    : 0,      // How many digits after the float sign to round to when applying the value
@@ -82,7 +82,7 @@ Behave3d.controllerProperty.prototype.construct = function(params, stage)
 			this.property_container = this.property_container[this.container_name];			
 		}
 		
-		var init_val = Behave3d.params.getLength(this.init_val, this.is_v_coo ? "X" : "Y", this.owner.element, ["same"]);
+		var init_val = Behave3d.params.getLength(this.init_val, (this.is_v_coo ? "Y" : "X"), this.owner.element, ["same"]);
 		if (init_val === "same")
 			init_val = this.readValue();
 	
@@ -98,8 +98,6 @@ Behave3d.controllerProperty.prototype.construct = function(params, stage)
 //---------------------------------------
 Behave3d.controllerProperty.prototype.message = function(message, message_params)
 {
-	var use_abs_val = (message_params.val !== undefined && message_params.dval === undefined);
-	
 	if (this.handleCommonMessage(message, message_params)) return this;	
 	message_params = this.setMessageParams(message, message_params);
 	
@@ -115,9 +113,10 @@ Behave3d.controllerProperty.prototype.message = function(message, message_params
 			this.stepper.setVar("val", dom_value);
 	}
 	
-	var param_val  = Behave3d.params.getLength(this.val, this.is_v_coo ? "X" : "Y", this.owner.element, ["same"]);
-	var param_dval = Behave3d.params.getLength(this.dval, this.is_v_coo ? "X" : "Y", this.owner.element);
+	var param_val  = Behave3d.params.getLength(this.val, (this.is_v_coo ? "Y" : "X"), this.owner.element, ["same"]);
+	var param_dval = Behave3d.params.getLength(this.dval, (this.is_v_coo ? "Y" : "X"), this.owner.element);
 	
+	var use_abs_val   = (message_params.val !== undefined && message_params.dval === undefined);	
 	var movement_dval = (!use_abs_val && param_dval != 0) ? param_dval : (param_val === "same") ? 0 : param_val - this.stepper.getVar("val", true);
 
 	this.stepper.start(this.direction, this.repeat_start_pos, new_start, {val: movement_dval}, duration);
