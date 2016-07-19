@@ -10,7 +10,7 @@
 Behave3d.controllerLookAt = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerLookAt.prototype = Object.create(Behave3d.Controller.prototype);
 

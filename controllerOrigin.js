@@ -10,7 +10,7 @@
 Behave3d.controllerOrigin = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerOrigin.prototype = Object.create(Behave3d.Controller.prototype);
 

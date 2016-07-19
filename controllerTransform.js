@@ -10,7 +10,7 @@
 Behave3d.controllerTransform = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerTransform.prototype = Object.create(Behave3d.Controller.prototype);
 

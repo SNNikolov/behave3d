@@ -10,7 +10,7 @@
 Behave3d.controllerListButton = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerListButton.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -113,7 +113,7 @@ Behave3d.controllerListButton.prototype.setEventHandlers = function()
 		for (var i = 0; i < this.targets.length; i++)
 			this.targets[i].addEventListener("click", function() { this_controller.message("click"); });
 	}
-}
+};
 
 //---------------------------------------
 // Performs the reactions supplied in do_what
@@ -126,7 +126,9 @@ Behave3d.controllerListButton.prototype.doReaction = function(do_what, event_typ
 	if (!do_back &&
 		do_what != "fire" &&
 		["click", "no_prev", "no_next"].indexOf(event_type) >= 0)
-		setTimeout((function() {this.doReaction(do_what, true, event_type)}).bind(this), this.back_delay);	
+		setTimeout((function() {
+			this.doReaction(do_what, true, event_type);
+		}).bind(this), this.back_delay);	
 
 	var do_what_parts = do_what.trim().split(" ");
 	
@@ -147,7 +149,7 @@ Behave3d.controllerListButton.prototype.doReaction = function(do_what, event_typ
 					this.fireEvent(event_type);
 				break;
 		}
-}
+};
 
 //---------------------------------------
 // Receives events from the list and performs the respective reactions
@@ -173,7 +175,7 @@ Behave3d.controllerListButton.prototype.handlerOfListEvents = function(event_typ
 				this.doReaction(this.when_no_progress, "no_progress");
 			break;
 	}
-}
+};
 
 Behave3d.registerController("listButton", Behave3d.controllerListButton);
 

@@ -10,7 +10,7 @@
 Behave3d.controllerGravitate = function(params)
 {
 	Behave3d.Controller.call(this, params, true);
-}
+};
 
 Behave3d.controllerGravitate.prototype = Object.create(Behave3d.Controller.prototype);
 

@@ -10,7 +10,7 @@
 Behave3d.controllerBrownMovement = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerBrownMovement.prototype = Object.create(Behave3d.Controller.prototype);
 

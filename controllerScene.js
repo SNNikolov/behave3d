@@ -10,7 +10,7 @@
 Behave3d.controllerScene = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerScene.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -79,7 +79,7 @@ Behave3d.controllerScene.prototype.update = function()
 Behave3d.controllerScene.prototype.windowScrollListener = function()
 {
 	this.needUpdate = true;
-}
+};
 
 //---------------------------------------
 Behave3d.controllerScene.prototype.updateViewport = function()
@@ -101,7 +101,7 @@ Behave3d.controllerScene.prototype.updateViewport = function()
 		y : window.pageYOffset - scene.y,
 		w : window.innerWidth,
 		h : window.innerHeight
-	}
+	};
 	
 	// Get current position of viewport's center
 	this.perspective_origin_x = viewport.x + viewport.w / 2;
@@ -122,7 +122,7 @@ Behave3d.controllerScene.prototype.updateViewport = function()
 	this.needUpdate = false;
 	
 	Behave3d.debugOut(this.debugName() + " sets perspectiveOrigin='" + this.perspective_origin_x + "% " + this.perspective_origin_y + "%', perspective="+Behave3d.vars.sceneParams.perspective+" for viewport(x: "+viewport.x+", y: "+viewport.y+", w: "+viewport.w+", h: "+viewport.h+")");
-}
+};
 
 Behave3d.registerController("scene", Behave3d.controllerScene);
 

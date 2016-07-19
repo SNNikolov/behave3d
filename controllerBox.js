@@ -10,7 +10,7 @@
 Behave3d.controllerBox = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerBox.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -93,7 +93,7 @@ Behave3d.controllerBox.prototype.update = function()
 			}, i);
 		}
 	}
-}
+};
 
 //---------------------------------------
 // Sets sides' sizes
@@ -127,7 +127,7 @@ Behave3d.controllerBox.prototype.setSides = function()
 	// Set width and height of this element to match the box size
 	this.owner.element.style.width  = this.computed_params.x_size + "px";
 	this.owner.element.style.height = this.computed_params.y_size + "px";
-}
+};
 
 Behave3d.registerController("box", Behave3d.controllerBox);
 

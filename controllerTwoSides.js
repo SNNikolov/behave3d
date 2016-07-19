@@ -10,7 +10,7 @@
 Behave3d.controllerTwoSides = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerTwoSides.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -93,7 +93,7 @@ Behave3d.controllerTwoSides.prototype.setSides = function()
 		this.targets[i].style.position           = "absolute";
 		this.targets[i].style.backfaceVisibility = "hidden";
 	}
-}
+};
 
 Behave3d.registerController("twoSides", Behave3d.controllerTwoSides);
 

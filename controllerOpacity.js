@@ -10,7 +10,7 @@
 Behave3d.controllerOpacity = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerOpacity.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -109,7 +109,7 @@ Behave3d.controllerOpacity.prototype.message = function(message, message_params)
 		this.update(true);
 	
 	return this;
-}
+};
 
 //---------------------------------------
 Behave3d.controllerOpacity.prototype.update = function(dont_do_transforms)
@@ -166,7 +166,7 @@ Behave3d.controllerOpacity.prototype.setEventHandlers = function()
 			hide_start : ["hide", "fade_out_start"],
 			hide_end   : ["hide", "fade_out_end"],
 		});
-}
+};
 
 Behave3d.registerController("opacity", Behave3d.controllerOpacity);
 

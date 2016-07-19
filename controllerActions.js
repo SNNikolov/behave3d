@@ -10,7 +10,7 @@
 Behave3d.controllerActions = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerActions.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -27,7 +27,14 @@ Behave3d.controllerActions.prototype.messages       = [
 ];
 Behave3d.controllerActions.prototype.default_params = {};
 
-Behave3d.controllerActions.prototype.DOMEvents = ["focus", "blur", "click", "mouseover", "mouseout"];
+Behave3d.controllerActions.prototype.DOMEvents = [
+	"click", "dblclick", "mouseover", "mouseout", "mousedown", "mouseup", "mousemove",
+	"dragstart", "drag", "dragenter", "dragleave", "dragover", "dragend", "drop",
+	"keydown", "keypress", "keyup",
+	"load", "unload", "abort", "error", "resize", "scroll",
+	"focus", "blur", "focusin", "focusout",
+	"select", "change", "submit", "reset",
+];
 
 
 
@@ -41,6 +48,10 @@ Behave3d.controllerActions.prototype.construct = function(params, stage)
 		this.handledDOMEvents_useCapture = [];
 		this.eventHandler            = this.eventHandler.bind(this);
 		this.eventHandler_useCapture = this.eventHandler_useCapture.bind(this);
+
+		this.originalDisplay = window.getComputedStyle(this.owner.element, null).getPropertyValue("display");
+		if (this.originalDisplay == "none")
+			this.originalDisplay = "block";
 	}
 	else if (stage == "events") {
 
@@ -63,12 +74,14 @@ Behave3d.controllerActions.prototype.message = function(message, message_params)
 	var catches = this.fireEvent(message, message_params);
 	
 	if (message == "show" && !catches)
-		this.owner.element.style.display = "block";
-	else if (message == "hide" && !catches)
+		this.owner.element.style.display = this.originalDisplay;
+	else if (message == "hide" && !catches) {
+		this.originalDisplay = window.getComputedStyle(this.owner.element, null).getPropertyValue("display");
 		this.owner.element.style.display = "none";
+	}
 	
 	return this;
-}
+};
 
 //---------------------------------------
 Behave3d.controllerActions.prototype.addEventHandler = function(event, handler_function)
@@ -88,21 +101,21 @@ Behave3d.controllerActions.prototype.addEventHandler = function(event, handler_f
 		this.owner.element.addEventListener(event, handler, use_capture);
 		handled_events.push(event);
 	}	
-}
+};
 
 //---------------------------------------
 Behave3d.controllerActions.prototype.eventHandler = function(event)
 {
 	var event_params = {event: event};
 	this.fireEvent(event.type, event_params);
-}
+};
 
 //---------------------------------------
 Behave3d.controllerActions.prototype.eventHandler_useCapture = function(event)
 {
 	var event_params = {event: event};
 	this.fireEvent(event.type + "_capture", event_params);
-}
+};
 
 
 Behave3d.registerController("actions", Behave3d.controllerActions);

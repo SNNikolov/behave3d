@@ -10,7 +10,7 @@
 Behave3d.controllerScrollSpring = function(params)
 {
 	Behave3d.Controller.call(this, params, true);
-}
+};
 
 Behave3d.controllerScrollSpring.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -78,7 +78,7 @@ Behave3d.controllerScrollSpring.prototype.getScrollPos = function()
 	return {
 		x: window.pageXOffset,
 		y: window.pageYOffset
-	}
+	};
 };
 
 Behave3d.registerController("scrollSpring", Behave3d.controllerScrollSpring);

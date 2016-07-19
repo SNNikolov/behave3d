@@ -10,7 +10,7 @@
 Behave3d.controllerScale = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerScale.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -95,8 +95,7 @@ Behave3d.controllerScale.prototype.message = function(message, message_params)
 	var dsy = this.sy - this.stepper.getVar("sy", true);
 	var dsz = this.sz - this.stepper.getVar("sz", true);
 	
-	this.stepper.start(this.direction, this.repeat_start_pos, new_start, {sx: dsx, sy: dsy, sz: dsz}, duration);
-	
+	this.stepper.start(this.direction, this.repeat_start_pos, new_start, {sx: dsx, sy: dsy, sz: dsz}, duration);	
 	this.paused = false;	
 	
 	return this;
@@ -130,7 +129,7 @@ Behave3d.controllerScale.prototype.setEventHandlers = function()
 			hide_start : "start",
 			hide_end   : "end",
 		});
-}
+};
 
 Behave3d.registerController("scale", Behave3d.controllerScale);
 

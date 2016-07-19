@@ -10,7 +10,7 @@
 Behave3d.controllerRotate = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerRotate.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -91,9 +91,8 @@ Behave3d.controllerRotate.prototype.message = function(message, message_params)
 	var duration    = (message == "pos0" || message == "pos1") ? 0 : this.duration;
 	var new_start   = (message == "start_new" || message == "start_new_back");
 	
-	this.stepper.start(this.direction, this.repeat_start_pos, new_start, {angle: this.angle}, duration);
-	
-	this.paused = false;	
+	this.stepper.start(this.direction, this.repeat_start_pos, new_start, {angle: this.angle}, duration);	
+	this.paused = false;
 	
 	return this;
 };
@@ -127,7 +126,7 @@ Behave3d.controllerRotate.prototype.setEventHandlers = function()
 			hide_start : "start",
 			hide_end   : "end",
 		});
-}
+};
 
 Behave3d.registerController("rotate", Behave3d.controllerRotate);
 

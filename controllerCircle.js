@@ -10,7 +10,7 @@
 Behave3d.controllerCircle = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerCircle.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -137,7 +137,7 @@ Behave3d.controllerCircle.prototype.setEventHandlers = function()
 			hide_start : "start",
 			hide_end   : "end",
 		});
-}
+};
 
 Behave3d.registerController("circle", Behave3d.controllerCircle);
 

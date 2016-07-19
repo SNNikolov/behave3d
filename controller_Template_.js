@@ -96,7 +96,7 @@ Behave3d.controllerName.prototype.update = function()
 		type: Behave3d.transforms.translate,
 		dx: 0, dy: 0, dz: this.working_var_z
 	});
-}
+};
 
 //---------------------------------------
 Behave3d.controllerName.prototype.someListenerMethod = function(event, event_params)
@@ -105,7 +105,7 @@ Behave3d.controllerName.prototype.someListenerMethod = function(event, event_par
 		// Handle behave3d event
 	else
 		// Handle DOM event
-}
+};
 
 Behave3d.registerController("name", Behave3d.controllerName);
 

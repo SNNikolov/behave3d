@@ -1,0 +1,25 @@
+This file lists the changes between Behave3d versions.
+Legend:
+ + New feature
+ - Modified behavior
+ * Bugfix
+
+  
+v0.81b (2016-07-19)
+ + Detecting of the CSS prefix used for the transform, transform-origin, transform-style, perspective and perspective-origin properties. Include script Behave3d_detectPrefixes.js before Behave3d.js.
+ - Code linted (ESlint used) and better commented
+ - Behave3d.Element.add() upon parameter return_references returns an array of controller references instead of only a reference to the first added controller
+ + Behave3d.Controller.off() and Behave3d.Controller.removeEventHandler() methods added that remove event listeners
+ - Behave3d.debugExit() now doesn't alert(), only throws the error string
+ + Behave3d.Controller.registerActions() now accepts value "reverse" for its actions_target parameter
+ - Behave3d.StepEngine's default options are now found in Behave3d.StepEngine.default_options instead of in the constructor
+ + Behave3d.StepEngine.default_options.always_fire_start_end option added that tells if the step engine should fire "start" and "stop" events for movements with zero distance
+ * Behave3d.StepEngine.update() fixed to properly fire the "half" event
+ + The actions() controller can now listen for (almost) all standard DOM events
+ * The actions() controller's default handling of the "show" action now remembers correctly the original value of the element's style.display property
+ + The move() controller has a new param added (anti_perspective) that "skews" the Z-axis towards the camera
+ + The property() controller can now animate colors in format #rrggbb (when suffix is "#")
+
+
+v0.80b (2016-02-13)
+ + First public version

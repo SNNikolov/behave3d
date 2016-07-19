@@ -10,7 +10,7 @@
 Behave3d.controllerSpring = function(params)
 {
 	Behave3d.Controller.call(this, params, true);
-}
+};
 
 Behave3d.controllerSpring.prototype = Object.create(Behave3d.Controller.prototype);
 

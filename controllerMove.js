@@ -10,7 +10,7 @@
 Behave3d.controllerMove = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerMove.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -56,6 +56,8 @@ Behave3d.controllerMove.prototype.default_params = {
 	init_x       : 0,      // Initial X displacement
 	init_y       : 0,      // Initial Y displacement
 	init_z       : 0,      // Initial Z displacement
+
+	anti_perspective : 0,  // [0 - 1] Neutralizes perspective; When value is 1, Z axis points towards the camera
 	
 	is_path      : false,  // If true, then the controller will not generate transforms, but its coordinates will be used by other controllers
 	
@@ -128,6 +130,16 @@ Behave3d.controllerMove.prototype.update = function()
 	this.path_pos.y = this.stepper.getVar("y");
 	this.path_pos.z = this.stepper.getVar("z");
 	this.path_enabled = this.stepper.isMoving();
+
+	if (this.anti_perspective != 0 && this.owner.element.offsetParent) {
+		var z_factor       = this.anti_perspective * this.path_pos.z / Behave3d.vars.sceneParams.perspective;
+		var viewport_pos   = Behave3d.getElementPos(this.owner.element, true, true, true);
+		var viewport_pos_x = -viewport_pos.x + Behave3d.params.getLength("50%v", "X");
+		var viewport_pos_y = -viewport_pos.y + Behave3d.params.getLength("50%v", "Y");
+
+		this.path_pos.x += (viewport_pos_x - this.path_pos.x) * z_factor;
+		this.path_pos.y += (viewport_pos_y - this.path_pos.y) * z_factor;
+	}
 	
 	if (!this.is_path)
 		this.addTransform({
@@ -155,7 +167,7 @@ Behave3d.controllerMove.prototype.setEventHandlers = function()
 			move_start : "start",
 			move_end   : "end",
 		});
-}
+};
 
 Behave3d.registerController("move", Behave3d.controllerMove);
 

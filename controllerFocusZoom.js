@@ -10,7 +10,7 @@
 Behave3d.controllerFocusZoom = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerFocusZoom.prototype = Object.create(Behave3d.Controller.prototype);
 

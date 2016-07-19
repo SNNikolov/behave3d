@@ -10,7 +10,7 @@
 Behave3d.controllerMenu = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerMenu.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -168,7 +168,7 @@ Behave3d.controllerMenu.prototype.message = function(message, message_params)
 Behave3d.controllerMenu.prototype.update = function()
 {
 	
-}
+};
 
 //---------------------------------------
 // Creates all needed controllers on this element and its children (menu items, sub-menus and their items)
@@ -220,7 +220,7 @@ Behave3d.controllerMenu.prototype.createMenuStructure = function(menu_controller
 		
 		item_index++;
 	}
-}
+};
 
 //---------------------------------------
 // Sets event handlers linking this carousel to its list's events
@@ -291,7 +291,7 @@ Behave3d.controllerMenu.prototype.setEventHandlers = function()
 				listener.element.addEventListener(listener.type, listener.handle, listener.useCapture);
 		}
 	}
-}
+};
 
 //---------------------------------------
 // Hides/shows this menu based on where the user clicks & focuses
@@ -354,14 +354,14 @@ Behave3d.controllerMenu.prototype.focusEventListener = function(event, is_delega
 	if (notify_submenus)
 		for (var i = 0; i < this.submenus.length; i++)
 			this.submenus[i].focusEventListener(event, true);
-}
+};
 
 //---------------------------------------
 // Returns true if the supplied HTML element is a child of this menu, or is the HTML element of this menu
 Behave3d.controllerMenu.prototype.isElementPartOfMenu = function(element)
 {
 	return (element == this.owner.element || this.owner.element.contains(element));
-}
+};
 
 //---------------------------------------
 // Positions the menu relative to the supplied HTML element (align_to_element)
@@ -384,7 +384,7 @@ Behave3d.controllerMenu.prototype.applyShowButtonStyle = function()
 		this.show_button.classList.add(highlight_class);
 	else
 		this.show_button.classList.remove(highlight_class);
-}
+};
 
 //---------------------------------------
 // Positions the menu relative to the supplied HTML element (align_to_element)
@@ -419,7 +419,7 @@ Behave3d.controllerMenu.prototype.alignMenu = function(align_to_element, align_t
 	this.owner.element.style.top  = Math.round(pos_y) + "px";
 	
 	return true;
-}
+};
 
 Behave3d.registerController("menu", Behave3d.controllerMenu);
 

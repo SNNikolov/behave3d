@@ -10,7 +10,7 @@
 Behave3d.controllerCarousel = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerCarousel.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -159,7 +159,7 @@ Behave3d.controllerCarousel.prototype.update = function()
 			}, i);
 		}
 	}
-}
+};
 
 //---------------------------------------
 // Sets event handlers linking this carousel to its list's events
@@ -173,7 +173,7 @@ Behave3d.controllerCarousel.prototype.setEventHandlers = function()
 		this.handlers_set_for_list = this.list;		
 		this.list_ref = this.getAnotherController(this.list);
 	}
-}
+};
 
 
 //---------------------------------------
@@ -198,7 +198,7 @@ Behave3d.controllerCarousel.prototype.setItems = function()
 		if (this.use_spring)
 			target.physics_enabled = true;
 	}
-}
+};
 
 //---------------------------------------
 // Calculates and returns the current position (as {x, y, z}) in 3D space of a carousel item
@@ -219,7 +219,7 @@ Behave3d.controllerCarousel.prototype.getItemPos = function(item_index, carousel
 	}
 	
 	return pos;
-}
+};
 
 Behave3d.registerController("carousel", Behave3d.controllerCarousel);
 

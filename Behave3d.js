@@ -15,8 +15,9 @@ Behave3d.controllers = {}; // Contains the definitions (constructors) of all reg
 Behave3d.params      = {}; // Contains functionality for reading parameters from strings/objects/arrays
 Behave3d.ui          = {}; // Add-ons for UI elements
 
+//---------------------------------------
 Behave3d.consts = {
-	VERSION            : 0.2,
+	VERSION            : 0.81,
 	FRAME_RATE         : 60, // Engine fps used with setTimeout-measuring of framerate
 	PHYSICS_FRAME_RATE : 600, // FPS for physics engine, where PHYSICS_FRAME_RATE/FRAME_RATE subframes are calculated each frame
 	GRAVITY_CONSTANT   : 400, // Gravity strength in pixel scale
@@ -39,45 +40,56 @@ Behave3d.consts = {
 	PRECISION_ROTATE_ANGLE : 1, // Precision of the angle in rotate transformations
 	PRECISION_SCALE        : 3, // Precision of the scaling multipliers in scale transformations
 	PRECISION_OPACITY      : 2, // Precision of the opacity in opacity transformations
-	
+
+	CSS_TRANSFORMS_PREFIX  : "", // CSS prefix (camelCase w/o dashes) to be used for transform, transformStyle and transformOrigin
+
 	DEBUG                  : !true,  // Set to true to activate debug checks and to see debug messages in console
 	DEBUG_STATS_CONTAINER  : "",    // Supply a HTML element's ID (when Behave3d.consts.DEBUG) to have this element's innerHTML filled with debug statistics printed every frame
 };
+
 // Override constants with properties of object window.behave3dConstants
 if (window.behave3dConstants)
 	for(window.behave3dConstants.i in window.behave3dConstants)
 		Behave3d.consts[window.behave3dConstants.i] = window.behave3dConstants[window.behave3dConstants.i];
 
-Behave3d.vars = {
-	engineIsPaused         : false, // If engine is paused, no controllers are updated and no transforms are applied
-	frameDuration          : 1000 / Behave3d.consts.FRAME_RATE, // Engine update interval in ms
-	frameTimerType         : "",    // Is set to Behave3d.consts.FRAME_TIMER_TYPE, and falls back from "raf" to "st" if requestAnimationFrame() is not supported
-	frameTimerID           : null,  // Id for setTimeout(), which is used for frame rate
-	sceneParams            : {},    // List of current scene's params (see Behave3d.controllerActions.default_params)
-	elementsPool           : [],    // Pool of all HTML elements that have behave3d functionality
-	elementsToRemove       : [],    // Elements to remove from the pool at the end of the frame
-	sceneContainer         : null,  // Reference to the DOM node that contains the scene, it has the scene controller assigned
-	sceneController        : null,  // Reference to the scene controller, which is assigned to the scene container
-	uniqueIDCounter        : 0,     // Counter for generating unique IDs for controller instances
-	delayedInits           : false, // A flag telling behave3d.Element.addController() whether to skip params with events and messages, so that they can be executed later when all elements have been created
-	unitRem                : 1,     // Size in pixels of the layout unit "rem"
-	lastFrameTimestamp     : 0,     // Timestamp of previous engine frame
-	lastFrameSubframes     : 1,     // Number of frames actually processed on last engine frame in order to compensate framerate drop
-	longTermFrameDuration  : 0,     // Average frame duration integrated with Behave3d.consts.LONGTERM_FRAME_DURATION_M
-	shortTermFrameDuration : 0,     // Average frame duration integrated with Behave3d.consts.SHORTTERM_FRAME_DURATION_M
-	mousePosX              : 0,     // Current X position of mouse
-	mousePosY              : 0,     // Current Y position of mouse
-	debugInfo              : {}     // When debug is enabled, the engine will gather statistics here
-};
 
+// Transforms accepted by Behave3d.Element.applyTransforms()
 Behave3d.transforms = {
-	// Transforms accepted by Behave3d.Element.applyTransforms()
 	translate: { dx: 0,   dy: 0,   dz: 0 },        // translate, in pixels
 	scale:     { sx: 1,   sy: 1,   sz: 1 },        // scale, multiplier of original scale 1
 	rotate:    { rx: 0,   ry: 0,   rz: 0, ra: 0 }, // rotate, ra - in Behave3d.consts.ROTATE_UNIT, rx, ry and rz - normalized, [0 - 1]
 	origin:    { ox: 0.5, oy: 0.5, oz: 0 },        // transform-origin (ox and oy in parts of size[0 - 1], oz in px)
 	opacity:   { opacity: 1 },                     // opacity, [0 - 1]
 	flatten:   { flatten: true },                  // If flatten is true, then the element's transform-style will be flat, preserve-3d otherwise
+};
+
+
+//---------------------------------------
+Behave3d.vars = {
+	engineIsPaused           : false, // If engine is paused, no controllers are updated and no transforms are applied
+	frameDuration            : 1000 / Behave3d.consts.FRAME_RATE, // Engine update interval in ms
+	frameTimerType           : "",    // Is set to Behave3d.consts.FRAME_TIMER_TYPE, and falls back from "raf" to "st" if requestAnimationFrame() is not supported
+	frameTimerID             : null,  // Id for setTimeout(), which is used for frame rate
+	sceneParams              : {},    // List of current scene's params (see Behave3d.controllerActions.default_params)
+	elementsPool             : [],    // Pool of all HTML elements that have behave3d functionality
+	elementsToRemove         : [],    // Elements to remove from the pool at the end of the frame
+	sceneContainer           : null,  // Reference to the DOM node that contains the scene, it has the scene controller assigned
+	sceneController          : null,  // Reference to the scene controller, which is assigned to the scene container
+	uniqueIDCounter          : 0,     // Counter for generating unique IDs for controller instances
+	delayedInits             : false, // A flag telling behave3d.Element.addController() whether to skip params with events and messages, so that they can be executed later when all elements have been created
+	unitRem                  : 1,     // Size in pixels of the layout unit "rem"
+	cssPropTransform         : "transform", // Used style property names (+ eventual prefixes)
+	cssPropTransformStyle    : "transformStyle",
+	cssPropTransformOrigin   : "transformOrigin",
+	cssPropPerspective       : "perspective",
+	cssPropPerspectiveOrigin : "perspectiveOrigin",
+	lastFrameTimestamp       : 0,     // Timestamp of previous engine frame
+	lastFrameSubframes       : 1,     // Number of frames actually processed on last engine frame in order to compensate framerate drop
+	longTermFrameDuration    : 0,     // Average frame duration integrated with Behave3d.consts.LONGTERM_FRAME_DURATION_M
+	shortTermFrameDuration   : 0,     // Average frame duration integrated with Behave3d.consts.SHORTTERM_FRAME_DURATION_M
+	mousePosX                : 0,     // Current X position of mouse
+	mousePosY                : 0,     // Current Y position of mouse
+	debugInfo                : {}     // When debug is enabled, the engine will gather statistics here
 };
 
 
@@ -93,6 +105,7 @@ Behave3d.transforms = {
 // Behave3d.pauseEngine(is_paused)
 // Behave3d.isEnginePaused()
 // Behave3d.calculateUnits()
+// Behave3d.setCSSPrefixes(transforms_prefix)
 // Behave3d.runThisFrame()
 // Behave3d.updatePool(skip_removal, behave3d_attribute)
 // Behave3d.setScene(scene_params, scene_controller)
@@ -132,7 +145,7 @@ Behave3d.transforms = {
 // Behave3d.Element.prototype.addController(controller_or_title, controller_params)
 // Behave3d.Element.prototype.removeController(controller)
 // Behave3d.Element.prototype.removeAllControllers()
-// Behave3d.Element.prototype.add(controllers_defs, return_reference)
+// Behave3d.Element.prototype.add(controllers_defs, return_references)
 // Behave3d.Element.prototype.getDOMElement(element_or_id, return_behave3d)
 // Behave3d.Element.prototype.getControllerIndex(controller_instance)
 // Behave3d.Element.prototype.getController(controller_id, get_index)
@@ -156,6 +169,9 @@ Behave3d.transforms = {
 // Behave3d.Controller.prototype.message(message, message_params)
 // Behave3d.Controller.prototype.handleCommonMessage(message, message_params)
 // Behave3d.Controller.prototype.on(event_to_wait_for, handler_function_or_message)
+// Behave3d.Controller.prototype.off(event, handler_function)
+// Behave3d.Controller.prototype.addEventHandler(event, handler_function)
+// Behave3d.Controller.prototype.removeEventHandler(event, handler_function)
 // Behave3d.Controller.prototype.fireEvent(event_type, event_params, event_scope)
 // Behave3d.Controller.prototype.relayEvents(controller_to_relay_to, events_map)
 // Behave3d.Controller.prototype.registerActions(actions_target, event_handling_list)
@@ -193,6 +209,8 @@ Behave3d.transforms = {
 //------------------------------------------------------------------------------------------------------------------------
 
 //---------------------------------------
+// Initializes the engine and starts the 60fps updating of the empty pool (no scanning of the DOM is performed)
+// Can be called before the DOM is ready, but then the called Behave3d.calculateUnits() will not be able to measure "rem", etc.
 Behave3d.startEngine = function()
 {
 	// Init behave3d elements pool
@@ -205,35 +223,39 @@ Behave3d.startEngine = function()
 		Behave3d.vars.frameTimerType = "st";
 	}
 	Behave3d.vars.frameTimerID = (Behave3d.vars.frameTimerType == "raf") ? 
-				requestAnimationFrame(Behave3d.runThisFrame) :
-				setTimeout(Behave3d.runThisFrame, Behave3d.vars.frameDuration);
+				window.requestAnimationFrame(Behave3d.runThisFrame) :
+				window.setTimeout(Behave3d.runThisFrame, Behave3d.vars.frameDuration);
 	Behave3d.vars.engineIsPaused = false;
 	
 	Behave3d.calculateUnits();
+	Behave3d.setCSSPrefixes(Behave3d.consts.CSS_TRANSFORMS_PREFIX);
 	
 	document.addEventListener("mousemove", Behave3d.mouseEventListener, true);
 	document.addEventListener("touchmove", Behave3d.mouseEventListener, true);
 };
 
 //---------------------------------------
+// Stops the 60fps update cycle
 Behave3d.stopEngine = function()
 {
 	if (Behave3d.var.frameTimerType == "raf") {
 		if (window.cancelAnimationFrame)
-			cancelAnimationFrame(Behave3d.vars.frameTimerID);
+			window.cancelAnimationFrame(Behave3d.vars.frameTimerID);
 	}
 	else	
-		clearTimeout(Behave3d.vars.frameTimerID);
+		window.clearTimeout(Behave3d.vars.frameTimerID);
 };
 
 //---------------------------------------
+// @returns {Boolean} True if the engine is currently paused, false otherwise
 Behave3d.isEnginePaused = function()
 {
 	return Behave3d.vars.engineIsPaused;
-}
+};
 
 //---------------------------------------
-// If is_paused is not supplied, engine will toggle its state (go to running if paused, pause otherwise)
+// Pauses the engine, temporarily stopping the update cycle
+// @param {Boolean} [is_paused] If not supplied, will make the engine toggle its state (go to running if paused, pause otherwise)
 Behave3d.pauseEngine = function(is_paused)
 {
 	if (is_paused === undefined) is_paused = !Behave3d.vars.engineIsPaused;
@@ -241,23 +263,44 @@ Behave3d.pauseEngine = function(is_paused)
 	Behave3d.vars.engineIsPaused = is_paused;
 	
 	Behave3d.debugOut("behave3d engine is "+(is_paused ? "" : "un")+"paused");
-}
+};
 
 //---------------------------------------
 // Calculate sizes of units used in coordinate parameters, caches results in working vars
+// Note that this method must be called after document.body is created
 Behave3d.calculateUnits = function()
 {
+	if (!document.body) return; // Cannot create dummy elements to measure sizes
+	
 	var tempDiv = document.createElement('div');
+	tempDiv.style.boxSizing = "border-box";
     tempDiv.style.width = '1000rem';
+	
     document.body.appendChild(tempDiv);
-    
 	Behave3d.vars.unitRem = tempDiv.offsetWidth / 1000;
-   
 	document.body.removeChild(tempDiv);
-}
+};
+
+//---------------------------------------
+// Set what prefix to be used for CSS properties. Prefixes are supplied in camelCase without dashes.
+// @param {String} transforms_prefix Gives the prefix to be used for transform, transformStyle, transformOrigin, perspective and perspectiveOrigin
+Behave3d.setCSSPrefixes = function(transforms_prefix)
+{
+	function getPrefixed(prop_name, prefix) {
+		return (prefix == "" ? prop_name : prefix + prop_name.substr(0, 1).toUpperCase() + prop_name.substr(1));
+	}
+
+	Behave3d.vars.cssPropTransform         = getPrefixed("transform" , transforms_prefix);
+	Behave3d.vars.cssPropTransformStyle    = getPrefixed("transformStyle" , transforms_prefix);
+	Behave3d.vars.cssPropTransformOrigin   = getPrefixed("transformOrigin" , transforms_prefix);
+	Behave3d.vars.cssPropPerspective       = getPrefixed("perspective" , transforms_prefix);
+	Behave3d.vars.cssPropPerspectiveOrigin = getPrefixed("perspectiveOrigin" , transforms_prefix);
+};
 
 //---------------------------------------
 // Supply new values of some scene parameters and update scene container node's CSS properties perspective and perspective-origin
+// @param {Object|Array} scene_params An object {param_name: value, ...} or array [[param_name, value], ...] containing the new values of parameters
+// @param {Behave3d.Controller} scene_controller Reference to the scene() controller
 Behave3d.setScene = function(scene_params, scene_controller)
 {
 	if (Array.isArray(scene_params))
@@ -270,9 +313,9 @@ Behave3d.setScene = function(scene_params, scene_controller)
 	Behave3d.vars.sceneParams.perspective = Behave3d.params.getLength(Behave3d.vars.sceneParams.perspective, "Z", Behave3d.vars.sceneContainer, false);
 
 	// Apply scene parameters on HTML elements
-	Behave3d.vars.sceneContainer.style.perspective       = Behave3d.vars.sceneParams.perspective + "px";
-	Behave3d.vars.sceneContainer.style.perspectiveOrigin = Behave3d.vars.sceneParams.perspective_origin_x + "% " + Behave3d.vars.sceneParams.perspective_origin_y + "%";	
-}
+	Behave3d.vars.sceneContainer.style[Behave3d.vars.cssPropPerspective]       = Behave3d.vars.sceneParams.perspective + "px";
+	Behave3d.vars.sceneContainer.style[Behave3d.vars.cssPropPerspectiveOrigin] = Behave3d.vars.sceneParams.perspective_origin_x + "% " + Behave3d.vars.sceneParams.perspective_origin_y + "%";	
+};
 
 //---------------------------------------
 // A shortcut to the scene controller's method updateViewport() which sets the scene container's perspective-origin to the center of the browser's viewport
@@ -281,9 +324,10 @@ Behave3d.updateViewport = function()
 {
 	if (Behave3d.vars.sceneController)
 		Behave3d.vars.sceneController.updateViewport();
-}
+};
 
 //----------------------------------------------------------
+// This handler updates Behave3d's variables containing the mouse/touch coordinates
 Behave3d.mouseEventListener = function(e)
 {
 	if (e.type == "mousemove") {
@@ -294,11 +338,13 @@ Behave3d.mouseEventListener = function(e)
 		Behave3d.vars.mousePosX = e.changedTouches[0].pageX;
 		Behave3d.vars.mousePosY = e.changedTouches[0].pageY;
 	}
-}
+};
 
 //---------------------------------------
 // Registers controller type for usage: adds its constructor to Behave3d.controllers
-// Returns false if this controller has already been registered
+// @param {String} title Name(alias) of controller
+// @param {Behave3d.Controller} constructor Class constructor that is a descendant of Behave3d.Controller
+// @returns {Boolean} False if this controller has already been registered
 Behave3d.registerController = function(title, constructor)
 {
 	if (Behave3d.controllers[title])
@@ -320,12 +366,12 @@ Behave3d.registerController = function(title, constructor)
 	
 	Behave3d.controllers[title] = constructor;
 	constructor.prototype.title = title;
-}
+};
 
 //---------------------------------------
 // Query the scene container node for elements with 'behave3d' attribute and updates Behave3d.vars.elementsPool
-// If !skip_removal, the current pool will be checked for elements deleted from the DOM tree and the found ones will be removed form the pool
-// Supply an overriding attribute name in behave3d_attribute (default is Behave3d.consts.BEHAVE3D_ATTRIB) or supply behave3d_attribute = "" for no search of new DOM nodes
+// @param {Boolean} skip_removal If false, the current pool will be checked for elements deleted from the DOM tree and the found ones will be removed form the pool
+// @param {String} [behave3d_attribute] Supply an overriding attribute name in behave3d_attribute (default is Behave3d.consts.BEHAVE3D_ATTRIB) or supply behave3d_attribute = "" for no search of new DOM nodes
 Behave3d.updatePool = function(skip_removal, behave3d_attribute)
 {
 	if (behave3d_attribute === undefined)
@@ -359,9 +405,10 @@ Behave3d.updatePool = function(skip_removal, behave3d_attribute)
 };
 
 //---------------------------------------
-// Returns a reference to a HTML element's own behave3d element or any of its controllers
-// 
-// If create_behave3d is true, then creates behave3d element if such is not present
+// Returns a reference to a HTML element's behave3d element or any of its controllers
+// @param {HTMLElement|jQuery.m|String} dom_element_or_id Reference to an HTML element, jQuery object, or a string "<DOM id>" or "<DOM id> <controller id>"
+// @param {Boolean} create_behave3d If true, then creates behave3d element if such is not present on the supplied HTML element
+// @returns {Behave3d.Element|Behave3d.Controller|false} Reference to the found behave3d element/controller, or false if the selector fails 
 Behave3d.selector = function(dom_element_or_id, create_behave3d)
 {
 	if (create_behave3d === undefined) create_behave3d = false;
@@ -418,11 +465,11 @@ Behave3d.doDelayedInits = function()
 	});
 		
 	Behave3d.vars.delayedInits = false;
-}
+};
 
 //---------------------------------------
-// Main function of the engine called every frame
-Behave3d.runThisFrame = function(timestamp)
+// Main function of the engine called every frame; updates all behave3d elements and controllers
+Behave3d.runThisFrame = function()
 {
 	if (Behave3d.vars.engineIsPaused) return;
 	
@@ -490,8 +537,8 @@ Behave3d.runThisFrame = function(timestamp)
 	
 	// Schedule next frame
 	Behave3d.vars.frameTimerID = (Behave3d.vars.frameTimerType == "raf") ? 
-				requestAnimationFrame(Behave3d.runThisFrame) :
-				setTimeout(Behave3d.runThisFrame, Behave3d.vars.frameDuration);
+				window.requestAnimationFrame(Behave3d.runThisFrame) :
+				window.setTimeout(Behave3d.runThisFrame, Behave3d.vars.frameDuration);
 	
 	// Show debug info
 	if (Behave3d.consts.DEBUG &&
@@ -521,16 +568,17 @@ Behave3d.runThisFrame = function(timestamp)
 };
 
 //---------------------------------------
-// Parses strings in the format "item_name(param1, param2: value, ...) | item2_name | ..."
-// Returns array in the format [
-//      {title: item_name, params: [["param1", true], ["param2", value], ...]},
-//      {title: item2_name, params: []}, ...
-// ]
-// If return_as_named_properties then returns object in the format {
+// Parses strings in the format "item_name(param: value, ...) | item2_name..." and returns an array containing the parsed items & params
+// @param {String} items_with_params_str String to parse, format: "item_name(param1, param2: value, ...) | item2_name | ..."
+// @param {Boolean} return_as_named_properties If true, then returns object in the format {
 //      item_name  : {param1: true, param2: value, ...},
 //      item2_name : {}
 // }
-// No regExes, pure cycle power }:-)
+// @returns {Array|Object} Array in the format [
+//      {title: item_name, params: [["param1", true], ["param2", value], ...]},
+//      {title: item2_name, params: []}, ...
+// ]
+// No regExes, pure cycle power
 // ToDo: validations
 Behave3d.params.parseItemsString = function(items_with_params_str, return_as_named_properties)
 {
@@ -567,13 +615,14 @@ Behave3d.params.parseItemsString = function(items_with_params_str, return_as_nam
 	}
 	
 	return items;
-}
+};
 
 //---------------------------------------
-// Parses strings in the format "param1, param2: value, ..."
-// Returns array in the format [["param1", true], ["param2", value], ...]
-// If return_as_named_properties then returns object in the format {param1: true, param2: value, ...}
-// No regExes, pure cycle power }:-)
+// Parses strings in the format "param1, param2: value, ..." and returns an array containing the parsed params
+// @param {String} params_str String to parse, format: "param1, param2: value, ..."
+// @param {Boolean} return_as_named_properties If true, then returns object in the format {param1: true, param2: value, ...}
+// @returns {Array|Object} Array in the format [["param1", true], ["param2", value], ...]
+// No regExes, pure cycle power
 // ToDo: validations
 Behave3d.params.parseParamsString = function(params_str, return_as_named_properties)
 {
@@ -607,11 +656,12 @@ Behave3d.params.parseParamsString = function(params_str, return_as_named_propert
 	}
 	
 	return item_params;
-}
+};
 
 //---------------------------------------
-// Takes an object in the following format: {param1: true, param2: value, ...}
-// Returns array in the format: [["param1", true], ["param2", value], ...]
+// Takes an object containing property-value pairs and returns an array containing these pairs
+// @param {Object} params_object Object containing property-value pairs: {param1: true, param2: value, ...}
+// @returns {Array} Array in the format: [["param1", true], ["param2", value], ...]
 Behave3d.params.getParamsAsArray = function(params_object)
 {
 	var result_array = [];
@@ -619,11 +669,12 @@ Behave3d.params.getParamsAsArray = function(params_object)
 		result_array.push([param_name, params_object[param_name]]);
 	
 	return result_array;
-}
+};
 
 //---------------------------------------
-// Takes an object in the following format: [["param1", true], ["param2", value], ...]
-// Returns array in the format: {param1: true, param2: value, ...}
+// Takes an array containing property-value pairs and returns an object containing these pairs
+// @param {Array} params_array Array in the format: [["param1", true], ["param2", value], ...]
+// @returns {Object} Object containing property-value pairs: {param1: true, param2: value, ...}
 Behave3d.params.getParamsAsObject = function(params_array)
 {
 	var result_object = {};
@@ -631,14 +682,15 @@ Behave3d.params.getParamsAsObject = function(params_array)
 		result_object[params_array[i][0]] = params_array[i][1];
 	
 	return result_object;
-}
+};
 
 //---------------------------------------
-// Takes an object in the following format: {
+// Takes an object containing items and their properties and returns an array containing these items & properties
+// @param {Object} items_object Object in the following format: {
 //      item_name  : {param1: true, param2: value, ...},
 //      item2_name : {}
 // }
-// Returns array in the format [
+// @returns {Array} Array in the format: [
 //      {title: item_name, params: [["param1", true], ["param2", value], ...}},
 //      {title: item2_name, params: []}, ...
 // ]
@@ -653,12 +705,15 @@ Behave3d.params.getItemsAsArray = function(items_object)
 		});
 	
 	return result_array;
-}
+};
 
 //---------------------------------------
 // Finds and returns a param from a params array, and removes it from the array if do_remove is true
-// Returns undefined if no param with the supplied param_name is found in the params array
 // Notice that when several params with the same name exist, the method will return(+remove) only the first occurance
+// @param {Array} params_array Array in format: [[param_name, value], ...]
+// @param {String} param_name Name of param to look for
+// @param {Boolean} do_remove If true, the found param will be removed from the array
+// @returns {Number|String} Param value or undefined if no param with the supplied param_name is found in the params array
 Behave3d.params.getParam = function(params_array, param_name, do_remove)
 {
 	if (do_remove === undefined) do_remove = false;
@@ -674,11 +729,14 @@ Behave3d.params.getParam = function(params_array, param_name, do_remove)
 		}
 	
 	return undefined;
-}
+};
 
 //---------------------------------------
 // Returns an extended version of object with params, where new params are added and existing params overwritten
-// Set only_existing to true, if you want only the already-existing params to be overwritten and not to add new params
+// @param {Object} params_object Object containing property-value pairs: {param_name: value, ...}
+// @param {Object} new_params Another object containing property-value pairs: {param_name: value, new_param_name: value, ...}
+// @param {Boolean} only_existing If true, only the already-existing params will be overwritten and no new params will be added
+// @returns {Object} Object containing property-value pairs: {param_name: value, new_param_name: value, ...}
 Behave3d.params.extendObject = function(params_object, new_params, only_existing)
 {
 	if (only_existing === undefined) only_existing = false;
@@ -693,20 +751,26 @@ Behave3d.params.extendObject = function(params_object, new_params, only_existing
 			result_object[param_name] = new_params[param_name];
 	
 	return result_object;
-}
+};
 
 //---------------------------------------
-// Returns true if the supplied value is a number (or string containing a number), false otherwise
+// Checks if the supplied value is a number (or string containing a number)
+// @param value Value to evaluate
+// @param {Boolean} only_integers If true, then the check will return positive only if the value contains an integer
+// @returns {Boolean} True if the supplied value is a number, false otherwise
 Behave3d.params.isNumber = function(value, only_integers)
 {
 	return Number(only_integers ? parseInt(value) : parseFloat(value)) == value;
-}
+};
 
 //---------------------------------------
-// Returns the value in pixels of the supplied string representing length
-// axis can be "X" / "Y" / "Z" and tells what are we measuring (width, height or depth)
-// dom_element is for reference as "this" element related to which percentages are calculated
-// If allow_non_lengths is true, then the value is allowed to contain any string; allow_non_lengths can also be an array containing all allowed non-length string values
+// Returns the value in pixels of the supplied string representing length/distance
+// @param {String|Number} value The value to evaluate
+// @param {String} axis Can be "X" / "Y" / "Z" and tells what are we measuring (width, height or depth)
+// @param {HTMLElement} dom_element A reference to a DOM element whose lengths/percentages are calculated
+// @param {Boolean|Array} allow_non_lengths If true, then the value is allowed to contain any string; can also be an array containing all allowed non-length string values
+// @returns {Number} Number of pixels
+//
 // Supported formats of value:
 //    <number>    - number without dimensions is value in pixels
 //    <number>o   - same as above
@@ -796,10 +860,12 @@ Behave3d.params.getLength = function(value, axis, dom_element, allow_non_lengths
 		Behave3d.debugExit(invalid_notification + "not a number");
 
 	return (number * total / 100);
-}
+};
 
 //---------------------------------------
 // Returns a reference to the element supplied either by id or reference
+// @param {HTMLElement|String} element_or_id Reference to a DOM element, or string containing a DOM id
+// @returns {HTMLElement} Reference to a DOM element
 Behave3d.getDOMElement = function(element_or_id)
 {
 	var element = (typeof element_or_id == "string") ?
@@ -811,14 +877,15 @@ Behave3d.getDOMElement = function(element_or_id)
 		Behave3d.debugExit("HTML element expected, another object type received");
 	
 	return element;	
-}
+};
 
 //---------------------------------------
 // Returns the current coordinates of an HTML element as {x: x_coordinate, y: y_coordinate, z: z_coordinate}
-// element can be a DOM id or reference; or "@mouse"
-// If get_center is false (default), then the zero(i.e. top-left corner) coordinates will be returned
-// If without_transforms is false (default), then coordinates are aquired via getBoundingClientRect(), otherwise - via adding offsets
-// If relative_to_viewport is true, then the returned position is relative to the browser viewport
+// @param {HTMLElement|String} element Can be a reference to a DOM element, a DOM id, or "@mouse"
+// @param {Boolean} get_center If false (default), then the zero(i.e. top-left corner) coordinates of the element will be returned
+// @param {Boolean} without_transforms If false (default), then coordinates are aquired via getBoundingClientRect(), otherwise - via adding offsets
+// @param {Boolean} relative_to_viewport If true, then the returned position is relative to the browser viewport
+// @returns {Object} An object {x: x_coordinate, y: y_coordinate, z: z_coordinate}, or false if the element is not found
 Behave3d.getElementPos = function(element, get_center, without_transforms, relative_to_viewport)
 {
 	if (get_center === undefined) get_center = false;
@@ -881,10 +948,13 @@ Behave3d.getElementPos = function(element, get_center, without_transforms, relat
 	}
 	
 	return element_pos;
-}
+};
 
 //---------------------------------------
 // Returns the angle formed by the vector from pos1 to pos2 and the X coordinate axis in the 2D space
+// @param {Object} pos1 Object with format {x: x_coordinate, y: y_coordinate} 
+// @param {Object} pos2 Object with format {x: x_coordinate, y: y_coordinate}
+// @returns {Number} The angle in units Behave3d.consts.ROTATE_UNIT (default is degrees)
 Behave3d.getAngle = function(pos1, pos2)
 {
 	var dx = pos2.x - pos1.x;
@@ -894,11 +964,12 @@ Behave3d.getAngle = function(pos1, pos2)
 	if (angle < 0) angle += Behave3d.consts.ROTATE_ONE_TURN;
 	
 	return angle;
-}
+};
 
 //---------------------------------------
 // Returns a function with a supplied name or null if no such function is found
-// function_name can be a simple "function_name" or namespaced "ns1.ns2.function_name" where window is the root
+// @param {Function|String} function_name Can be a simple "function_name" or namespaced "ns1.ns2.function_name" where window is the root
+// @returns {Function} The found function or null
 Behave3d.getFunctionByName = function(function_name)
 {
 	if (typeof function_name == "function") return function_name; // parameter is already a function
@@ -915,10 +986,13 @@ Behave3d.getFunctionByName = function(function_name)
 			context = context[namespaces[i]];
 
     return (typeof context[func] == "function" ? context[func] : null);
-}
+};
 
 //---------------------------------------
-// Returns acceleration {x, y, z} needed to be applied for 1 engine frame in order for an element to be moved to relative point displacement(.x, .y, .z)
+// Returns acceleration {x, y, z} needed to be applied for 1 engine frame in order for an element to be moved to relative point (displacement)
+// @param {Object} displacement An object of format {x: displacement_x, y: displacement_y, z: displacement_z}, where the units are pixels
+// @param {Number} [time_step] Optionally supply the time_step (i.e. the frame duration) in seconds
+// @returns {Object} An object {x: acc_x, y: acc_y, z: acc_z}
 Behave3d.getAccForDisplacement = function(displacement, time_step)
 {
 	if (time_step === undefined) time_step = 1 / Behave3d.consts.FRAME_RATE;
@@ -928,11 +1002,14 @@ Behave3d.getAccForDisplacement = function(displacement, time_step)
 		x: displacement.x / acc_factor,
 		y: displacement.y / acc_factor,
 		z: displacement.z / acc_factor,
-	}
-}
+	};
+};
 
 //---------------------------------------
-// Returns acceleration {x, y, z} needed to be applied for 1 engine frame in order for an element to gain speed (.x, .y, .z)
+// Returns acceleration {x, y, z} needed to be applied for 1 engine frame in order for an element to gain the required speed
+// @param {Object} speed An object of format {x: speed_x, y: speed_y, z: speed_z}, where the units are pixels
+// @param {Number} [time_step] Optionally supply the time_step (i.e. the frame duration) in seconds
+// @returns {Object} An object {x: acc_x, y: acc_y, z: acc_z}
 Behave3d.getAccForSpeed = function(speed, time_step)
 {
 	if (time_step === undefined) time_step = 1 / Behave3d.consts.FRAME_RATE;
@@ -941,11 +1018,16 @@ Behave3d.getAccForSpeed = function(speed, time_step)
 		x: speed.x / time_step,
 		y: speed.y / time_step,
 		z: speed.z / time_step,
-	}
-}
+	};
+};
 
 //---------------------------------------
 // Returns true if the supplied angle_to_pass is just passed by angle (where prev_angle was the previous value of angle)
+// @param {Number} angle_to_pass The angle that is checked if passed
+// @param {Number} angle Current value of the moving "angle"
+// @param {Number} prev_angle Previous value of the moving "angle" 
+// @param {Number} cycle_len Value in the same angle units showing how much is a complete cycle (360*)
+// @returns {Boolean} True if angle_to_pass has just been passed, false otherwise 
 Behave3d.isAnglePassed = function(angle_to_pass, angle, prev_angle, cycle_len)
 {
 	var diff      = (angle - angle_to_pass) % cycle_len;
@@ -957,16 +1039,20 @@ Behave3d.isAnglePassed = function(angle_to_pass, angle, prev_angle, cycle_len)
 	if (diff <= 0 && (diff_prev > 0 || diff_prev < diff)) return true;
 		
 	return false;
-}
+};
 
 //---------------------------------------
 // Returns a value supplied each frame "enveloped" in a shape depending on ease_type
-// value_type:
+// @param {Number} value_to_ease Value to envelope
+// @param {String} ease_type Can be "ease" / "ease_in" / "ease_out" or "linear" for no easing
+// @param {Number} ease_amount A number between 0 (no easing) and 1 (strong easing); values > 1 are also possible
+// @param {Number} total_frames Total number of frames of the eased animation
+// @param {Number} current_frame Index of the current frame within the eased animation
+// @param {String} value_type Can be
 //     "step"    - supplied value is the average step for the movement; returns an enveloped step
 //     "total"   - supplied value is the total amount of movement; returns the current amount of movement (on this frame)
-//     "current" - supplied value is the current value (on this frame) of a variable; this value is simply enveloped 
-// ease_type can be "ease" / "ease_in" / "ease_out" or "linear" for no easing
-// ease_amount is between 0 (no easing) and 1 (strong easing)
+//     "current" - supplied value is the current value (on this frame) of a variable; this value is simply enveloped
+// @returns {Number} Enveloped value 
 Behave3d.ease = function(value_to_ease, ease_type, ease_amount, total_frames, current_frame, value_type)
 {
 	function get_ease_factor(ease_pos, ease_type)
@@ -1034,7 +1120,7 @@ Behave3d.ease = function(value_to_ease, ease_type, ease_amount, total_frames, cu
 		
 		return uneased_pos * (1 + (current_pos / uneased_pos - 1) * ease_amount);
 	}
-}
+};
 
 //---------------------------------------
 Behave3d.ease.easeTypes = [ "linear", "ease", "ease_in", "ease_out" ];
@@ -1043,23 +1129,22 @@ Behave3d.ease.mirrorMap = {
 	ease     : "ease",
 	ease_in  : "ease_out",
 	ease_out : "ease_in"
-}
+};
 
 
 //---------------------------------------
+// Wrapper for the debug console
 Behave3d.debugOut = function(line_to_print)
 {
-	if (Behave3d.consts.DEBUG) console.log("behave3d:  "+line_to_print);
-}
+	if (Behave3d.consts.DEBUG) console.log("behave3d:  " + line_to_print);
+};
 
 //---------------------------------------
+// Wrapper for halting on error
 Behave3d.debugExit = function(line_to_print)
 {
-	//Behave3d.debugOut(line_to_print);
-	alert(line_to_print);
-	
-	throw '';
-}
+	throw "behave3d:  " + line_to_print;
+};
 
 
 
@@ -1071,6 +1156,11 @@ Behave3d.debugExit = function(line_to_print)
 //------------------------------------------------------------------------------------------------------------------------
 // Behave3d.Element
 //------------------------------------------------------------------------------------------------------------------------
+// A behave3d element contains all behave3d functionality (inc. all controllers) for the DOM element it is attached to 
+// This constructor instantiates a behave3d element and attaches to the supplied DOM element
+// @param {HTMLElement|String} element Reference to a DOM element, or a string containing its id
+// @param {Boolean} [add_to_pool] Whether the element should be added to the behave3d pool (default: true)
+// @param {String} [behave3d_attribute] Name of DOM attribute contaning the controller definitions for the element
 Behave3d.Element = function(element, add_to_pool, behave3d_attribute)
 {
 	if (add_to_pool        === undefined) add_to_pool        = true;
@@ -1105,7 +1195,7 @@ Behave3d.Element = function(element, add_to_pool, behave3d_attribute)
 	
 	this.configureDOMParents();
 }
-
+;
 //---------------------------------------
 Behave3d.Element.required_core_controllers = ["actions", "scene"];
 
@@ -1114,6 +1204,7 @@ Behave3d.Element.prototype = {};
 
 //---------------------------------------
 // Configure all DOM parents up to the scene node, preparing perspective, etc.
+// @returns {Behave3d.Element} Returns this for method chaining
 Behave3d.Element.prototype.configureDOMParents = function()
 {
 	var parent = this.element;
@@ -1122,15 +1213,16 @@ Behave3d.Element.prototype.configureDOMParents = function()
 			parent === document.body ||
 			!parent.style) break;
 		
-		if (!parent.style.transformStyle)
-			parent.style.transformStyle = "preserve-3d";
+		if (!parent.style[Behave3d.vars.cssPropTransformStyle])
+			parent.style[Behave3d.vars.cssPropTransformStyle] = "preserve-3d";
 	}
 
 	return this;
-}
+};
 
 //---------------------------------------
 // Add this element to behave3d's pool of elements
+// @returns {Behave3d.Element} Returns this for method chaining
 Behave3d.Element.prototype.addToPool = function()
 {
 	Behave3d.debugOut("Element - add to pool: " + this.debugName());
@@ -1145,10 +1237,11 @@ Behave3d.Element.prototype.addToPool = function()
 	this.is_pooled = true;
 
 	return this;
-}
+};
 
 //---------------------------------------
 // Remove element from behave3d's pool of elements
+// @returns {Behave3d.Element} Returns this for method chaining
 Behave3d.Element.prototype.removeFromPool = function()
 {
 	Behave3d.debugOut("Element - remove from pool: "+this.debugName());
@@ -1169,13 +1262,14 @@ Behave3d.Element.prototype.removeFromPool = function()
 
 //---------------------------------------
 // Attaches the specified controllers to this element
-// Receives a string with controllers definitions, for ex. "rotate(y: 1, turn_time: 1500) | back_surface()"
-// or array [{title: "rotate", params: {y: 1, turn_time: 1500}}, {title: "back_surface", params: {}}]
-// If return_reference is true, then reference to the first added controller will be returned; otherwise, this is returned
-Behave3d.Element.prototype.add = function(controllers_defs, return_reference)
+// @param {String|Array} controllers_defs A string with controllers definitions, for ex. "rotate(y: 1, turn_time: 1500) | back_surface()"
+//                                        or array [{title: "rotate", params: {y: 1, turn_time: 1500}}, {title: "back_surface", params: {}}]
+// @param {Boolean} return_references If true, then an array of references to the added controllers will be returned; otherwise, this is returned
+// @returns {Behave3d.Element|Array} Returns this for chain methods, or if return_references, returns an array with references to the added controllers
+Behave3d.Element.prototype.add = function(controllers_defs, return_references)
 {
 	if (!controllers_defs)
-		return (return_reference ? null : this);
+		return (return_references ? [] : this);
 	
 	var defs_array = (typeof controllers_defs == "string") ? Behave3d.params.parseItemsString(controllers_defs) : controllers_defs;
 	if (!defs_array) Behave3d.debugExit("Error in controllers definition for " + this.debugName() + ": '" + controllers_defs + "'");
@@ -1183,25 +1277,26 @@ Behave3d.Element.prototype.add = function(controllers_defs, return_reference)
 	var do_events_and_messages = (Behave3d.vars.delayedInits === false);
 	Behave3d.vars.delayedInits = Behave3d.vars.delayedInits || [];
 	
-	var first_controller = null;
+	var references = [];
 
 	// Add controllers to element
 	for (var ci = 0; ci < defs_array.length; ci++) {
 		var added_controller = this.addController(defs_array[ci].title, defs_array[ci].params);
-		if (ci == 0)
-			first_controller = added_controller;
+		if (return_references)
+			references.push(added_controller);
 	}
 	
 	if (do_events_and_messages)
 		Behave3d.doDelayedInits();
 	
-	return (return_reference ? first_controller : this);
-}
+	return (return_references ? references : this);
+};
 
 //---------------------------------------
 // Creates an instance of a controller and attaches it to a behave3d element
-// controller_params is an object {param_name: value, ...} or array [[param_name, value], ...]
-// Returns a reference to the newly-created controller
+// @param {String|Behave3d.Controller} controller_or_title Reference to a controller constructor or a string containing the name of a controller
+// @param {Object|Array} controller_params An object {param_name: value, ...} or array [[param_name, value], ...]
+// @returns {Behave3d.Controller} A reference to the newly-created controller
 Behave3d.Element.prototype.addController = function(controller_or_title, controller_params)
 {
 	if (controller_params === undefined) controller_params = [];
@@ -1261,7 +1356,7 @@ Behave3d.Element.prototype.addController = function(controller_or_title, control
 		Behave3d.vars.delayedInits.push({controller : controller, params : controller_params});
 
 	return controller;
-}
+};
 
 //---------------------------------------
 // Removes all controllers from an element
@@ -1269,11 +1364,12 @@ Behave3d.Element.prototype.removeAllControllers = function()
 {
 	for (var ci = this.controllers.length - 1; ci >= 0; ci--)
 		this.removeController(ci);
-}
+};
 
 //---------------------------------------
 // Removes a controller from an element
-// controller can be a reference / controller id / controller index in the element's controllers list
+// @param {Behave3d.Controller|String|Number} controller Can be a reference / controller id / controller index in the element's controllers list
+// @returns {Behave3d.Element} Returns this for method chaining
 Behave3d.Element.prototype.removeController = function(controller)
 {
 	var controller_index;
@@ -1302,23 +1398,26 @@ Behave3d.Element.prototype.removeController = function(controller)
 	controller.disabled = true;
 	
 	return this;
-}
+};
 
 //---------------------------------------
 // Returns the index of the supplied controller in element's .controllers array
-// Returns -1 if the controller was not found
+// @param {Behave3d.Controller} controller_instance Reference to controller
+// @returns {Number} Index of controller in element's list of controllers, or -1 if the controller was not found
 Behave3d.Element.prototype.getControllerIndex = function(controller_instance)
 {
 	for (var index = 0; index < this.controllers.length; index++)
 		if (this.controllers[index] === controller_instance) return index;
 	
 	return -1;
-}
+};
 
 //---------------------------------------
 // Returns a reference to the HTML element supplied either by id or reference
-// element_or_id can also be one of the special strings "@this" / "@parent" / "@ancestor"
-// If return_behave3d is true, then the HTML element's behave3d property is returned
+// @param {HTMLElement|String} element_or_id Can be a reference to a DOM element, or a string containing its id,
+//                                           or one of the special strings "@this" / "@parent" / "@ancestor"
+// @param {Boolean} return_behave3d If true, then the HTML element's behave3d property is returned
+// @returns {HTMLElement|Behave3d.Element} A DOM element or its behave3d element (when return_behave3d is true)
 Behave3d.Element.prototype.getDOMElement = function(element_or_id, return_behave3d)
 {
 	var dom_element;
@@ -1341,13 +1440,14 @@ Behave3d.Element.prototype.getDOMElement = function(element_or_id, return_behave
 		dom_element = Behave3d.getDOMElement(element_or_id);
 
 	return (return_behave3d ? dom_element[Behave3d.consts.BEHAVE3D_PROPERTY] : dom_element);
-}
+};
 
 //---------------------------------------
 // Calls the supplied function with this = each of the element's controllers
-// If each_own is true, the function will be called for each of the element's own controllers
-// If each_parent is true, the function will be called for each of the element's DOM-parents' controllers
-// If each_descendant is true, the function will be called for each of the element's DOM-descendants' controllers
+// @param {Boolean} each_own If true, the function will be called for each of the element's own controllers
+// @param {Boolean} each_parent If true, the function will be called for each of the element's DOM-parents' controllers
+// @param {Boolean} each_descendant If true, the function will be called for each of the element's DOM-descendants' controllers
+// @param {Function} callback_function The callback to call for each controller; within the callback, this will point to the controller
 Behave3d.Element.prototype.forEachController = function(each_own, each_parent, each_descendant, callback_function)
 {
 	if (each_own)
@@ -1371,11 +1471,13 @@ Behave3d.Element.prototype.forEachController = function(each_own, each_parent, e
 					Behave3d.Element.prototype.forEachController.call(child, false, false, true, callback_function);
 		}
 	}
-}
+};
 
 //---------------------------------------
-// Returns a reference to element's controller that has the supplied controller_id, false if such controller is not found
-// If get_index is true, then instead of a reference to the controller its index in the element's list of controllers is returned
+// Returns a reference to element's controller that has the supplied controller_id
+// @param {String} controller_id String containing the searched-for controller id
+// @param {Boolean} get_index If true, then instead of a reference to the controller its index in the element's list of controllers is returned
+// @returns {Behave3d.Controller|Number} Reference to the found controller, or its index (if get_index), or false if controller with such id is not found
 Behave3d.Element.prototype.getController = function(controller_id, get_index)
 {
 	if (get_index === undefined) get_index = false;
@@ -1387,7 +1489,7 @@ Behave3d.Element.prototype.getController = function(controller_id, get_index)
 				this.controllers[ci];
 		
 	return false;
-}
+};
 
 //---------------------------------------
 // Main update function for the element called every engine frame
@@ -1429,9 +1531,11 @@ Behave3d.Element.prototype.updateControllers = function()
 };
 
 //---------------------------------------
-// Message handler
-// message_scope: local(is default)/global/parents/children/p_and_c
-// Returns the number of elements that received the message
+// Receives a message to this behave3d element and sends it to the respective elements and controllers
+// @param {String} message A string containing the (usually one-word) message
+// @param {Object|Array} message_params An object {param_name: value...} or array [[param_name, value], ...] containing the message params
+// @param {String} message_scope Can be "local"(is default) / "global" / "parents" / "children" / "p_and_c"
+// @returns {Number} The number of elements that received the message
 Behave3d.Element.prototype.message = function(message, message_params, message_scope)
 {
 	if (message_scope === undefined) message_scope = "local";
@@ -1473,35 +1577,41 @@ Behave3d.Element.prototype.message = function(message, message_params, message_s
 	}
 	
 	return sent_messages_counter;
-}
+};
 
 //---------------------------------------
 // Shortcut for sending show/show_immediately message to this element
+// @param {Boolean} immediately Whether to append "_immediately" to the sent action
+// @returns {Behave3d.Element} Returns this for method chaining
 Behave3d.Element.prototype.show = function(immediately)
 {
 	this.message(immediately ? "show_immediately" : "show");
 	return this;
-}
+};
 
 //---------------------------------------
 // Shortcut for sending hide/hide_immediately message to this element
+// @param {Boolean} immediately Whether to append "_immediately" to the sent action
+// @returns {Behave3d.Element} Returns this for method chaining
 Behave3d.Element.prototype.hide = function(immediately)
 {
 	this.message(immediately ? "hide_immediately" : "hide");
 	return this;
-}
+};
 
 //---------------------------------------
 // Adds the supplied transform to the list of transforms that should be applied to this element this frame
-// Format of transform - see Behave3d.transforms
+// @param {Object} transform - For format, see Behave3d.transforms
+// @returns {Behave3d.Element} Returns this for method chaining
 Behave3d.Element.prototype.addTransform = function(transform)
 {
 	this.transforms.push(transform);
 	return this;
-}
+};
 
 //---------------------------------------
 // Removes all queued transforms from the element
+// @returns {Behave3d.Element} Returns this for method chaining
 Behave3d.Element.prototype.cleanTransforms = function()
 {
 	this.transforms.length = 0;
@@ -1510,7 +1620,7 @@ Behave3d.Element.prototype.cleanTransforms = function()
 		this.acc.x = this.acc.y = this.acc.z = 0;
 	
 	return this;
-}
+};
 
 //---------------------------------------
 // Applies the accumulated queue of transforms onto the element
@@ -1573,7 +1683,7 @@ Behave3d.Element.prototype.applyTransforms = function()
 	// Apply transforms if different than last transforms string
 	var new_transforms_str = transform_parts.join(" ");
 	if (new_transforms_str != this.last_transform_str) {
-		this.element.style.transform = this.last_transform_str = new_transforms_str;
+		this.element.style[Behave3d.vars.cssPropTransform] = this.last_transform_str = new_transforms_str;
 		
 		if (Behave3d.consts.DEBUG) {
 			Behave3d.vars.debugInfo.count_transformed_elements++;
@@ -1586,12 +1696,12 @@ Behave3d.Element.prototype.applyTransforms = function()
 	// Apply transform-origin
 	var new_origin_str = (transform_origin ? transform_origin.ox * 100 + "% " + transform_origin.oy * 100 + "% " + transform_origin.oz + "px" : "");
 	if (new_origin_str != this.last_origin_str)
-		this.element.style.transformOrigin = this.last_origin_str = new_origin_str;
+		this.element.style[Behave3d.vars.cssPropTransformOrigin] = this.last_origin_str = new_origin_str;
 	
 	// Apply transform-style
 	var new_style_str = (transform_flatten && transform_flatten.flatten ? "flat" : "preserve-3d");
 	if (new_style_str != this.last_style_str)
-		this.element.style.transformStyle = this.last_style_str = new_style_str;
+		this.element.style[Behave3d.vars.cssPropTransformStyle] = this.last_style_str = new_style_str;
 
 	// Apply opacity
 	if (opacity !== this.last_opacity_str) {
@@ -1604,6 +1714,8 @@ Behave3d.Element.prototype.applyTransforms = function()
 
 //---------------------------------------
 // Returns acceleration {x, y, z} needed to be applied for 1 engine frame in order for the element to stop
+// @param {Number} [time_step] Optionally supply the time_step (i.e. the frame duration) in seconds
+// @returns {Object} An object {x: acc_x, y: acc_y, z: acc_z}
 Behave3d.Element.prototype.getAccForSuddenStop = function(time_step)
 {
 	if (time_step === undefined) time_step = 1 / Behave3d.consts.FRAME_RATE;
@@ -1616,13 +1728,13 @@ Behave3d.Element.prototype.getAccForSuddenStop = function(time_step)
 		x: -acc.x - v.x / dt,
 		y: -acc.y - v.y / dt,
 		z: -acc.z - v.z / dt,
-	}
-}
+	};
+};
 
 //---------------------------------------
 // Calculates and updates physics properties
-// If add_to_transforms is true, then the calculated physics transforms are added to the element's transforms queue; if false, then the engine just updates the simulation
-// time_step is time interval is seconds
+// @param {Boolean} add_to_transforms If true, then the calculated physics transforms are added to the element's transforms queue; if false, then the engine just updates the simulation
+// @param {Number} [time_step] Optionally supply the time_step (i.e. the frame duration) in seconds
 Behave3d.Element.prototype.calcPhysics = function(add_to_transforms, time_step)
 {
 	if (!this.physics_enabled) return;
@@ -1656,7 +1768,7 @@ Behave3d.Element.prototype.calcPhysics = function(add_to_transforms, time_step)
 			dy  : pos.y,
 			dz  : pos.z,
 		});
-}
+};
 
 //---------------------------------------
 // Moves the HTML element from its current position in the DOM tree to the scene container and positions it absolutely at the same place
@@ -1673,12 +1785,14 @@ Behave3d.Element.prototype.makeChildOfScene = function()
 	this.element.style.position = "absolute";
 	this.element.style.left     = element_pos.x + "px";
 	this.element.style.top      = element_pos.y + "px";
-}
+};
 
 //---------------------------------------
 // Fires an event and calls all respective callbacks
-// event_scope: local/global/parents/children/p_and_c
-// Returns the number of callbacks called
+// @param {String} event_type Name of event
+// @param {String} event_scope Can be "local" (is default) / "global" / "parents" / "children" / "p_and_c"
+// @param {Object|Array} event_params An object {param_name: value...} or array [[param_name, value], ...] containing the event params
+// @returns {Number} The number of callbacks called
 Behave3d.Element.prototype.fireEvent = function(event_type, event_params, event_scope)
 {
 	if (event_scope === undefined) event_scope = "local";
@@ -1719,14 +1833,14 @@ Behave3d.Element.prototype.fireEvent = function(event_type, event_params, event_
 	}
 	
 	return callbacks_called;
-}
+};
 
 //---------------------------------------
 // Returns a string with the element's name, useful for debug
 Behave3d.Element.prototype.debugName = function()
 {
 	return this.element.nodeName+("#"+this.element.id);
-}
+};
 
 
 
@@ -1737,6 +1851,9 @@ Behave3d.Element.prototype.debugName = function()
 //------------------------------------------------------------------------------------------------------------------------
 // Behave3d.Controller
 //------------------------------------------------------------------------------------------------------------------------
+// Instantiates a controller and attaches it to the behave3d element supplied via params.owner
+// @param {Object|Array} params An object {param_name: value...} or array [[param_name, value], ...] containing the controller params
+// @param {Boolean} enable_physics Whether to enable the physics_enabled flag on the owner behave3d element
 Behave3d.Controller = function(params, enable_physics)
 {
 	if (params  === undefined) params  = {};
@@ -1763,7 +1880,7 @@ Behave3d.Controller = function(params, enable_physics)
 	
 	if (this.construct)
 		this.construct(params, "params");
-}
+};
 
 //---------------------------------------
 Behave3d.Controller.common_messages = ["pause", "unpause", "enable", "disable", "params", "remove"];
@@ -1773,12 +1890,15 @@ Behave3d.Controller.prototype = {};
 
 //---------------------------------------
 // Sets a new value to a controller param
-// mode is:
+// @param {String} param_name Name of parameter
+// @param {String|Number} new_val New value of the parameter
+// @param {String} mode Can be:
 //    ""          - all params are set as given (including event handlers and messages)
 //    "params"    - only set params, no firing of events, setting event handlers and sending of messages
 //    "events"    - only add event listeners
 //    "messages"  - only send messages
 //    "message"   - like mode "", but no errors on unknown parameters - these unknown parameters are supposed to be handled by the controller's message()
+// @returns {Behave3d.Controller} Returns this for method chaining
 Behave3d.Controller.prototype.setParam = function(param_name, new_val, mode)
 {
 	if (mode === undefined) mode = "";
@@ -1851,11 +1971,13 @@ Behave3d.Controller.prototype.setParam = function(param_name, new_val, mode)
 	}
 	
 	return this;
-}
+};
 
 //---------------------------------------
 // Sets new values to controller params
-// mode: see comments on setParams()
+// @param {Object|Array} new_params An object {param_name: value...} or array [[param_name, value], ...] containing the new values of the params
+// @param {String} mode See comments on setParams()
+// @returns {Behave3d.Controller} Returns this for method chaining
 Behave3d.Controller.prototype.set = function(new_params, mode)
 {
 	// Overwrite controller's params with supplied params
@@ -1871,17 +1993,22 @@ Behave3d.Controller.prototype.set = function(new_params, mode)
 	}
 	
 	return this;
-}
+};
 
 //---------------------------------------
 // Returns the value of the flag this.params_changed and sets it to false
+// @param {Boolean} dont_clear_flag If true, the flag is not cleared (set to false)
+// @returns {Boolean} The value of the flag before clearing it
 Behave3d.Controller.prototype.paramsHaveChanged = function(dont_clear_flag)
 {
 	return this.params_changed && (dont_clear_flag || !(this.params_changed = false));
-}
+};
 
 //---------------------------------------
-// Sets new values to controller params
+// Sets new values to controller params supplied in message_params
+// @param {String} message A string containing the (usually one-word) message
+// @param {Object|Array} message_params An object {param_name: value...} or array [[param_name, value], ...] containing the message params
+// @returns {Object} Returns the parameter message_params but fixed to {} if undefined
 Behave3d.Controller.prototype.setMessageParams = function(message, message_params)
 {
 	if (message_params === undefined)
@@ -1890,19 +2017,24 @@ Behave3d.Controller.prototype.setMessageParams = function(message, message_param
 		this.set(message_params, "message");
 		
 	return message_params;
-}
+};
 
 //---------------------------------------
-// Default message handler
+// Default message handler (is usually overloaded by the descendant class)
+// @param {String} message A string containing the (usually one-word) message
+// @param {Object|Array} message_params An object {param_name: value...} or array [[param_name, value], ...] containing the message params
+// @returns {Behave3d.Controller} Returns this for method chaining
 Behave3d.Controller.prototype.message = function(message, message_params)
 {
 	this.handleCommonMessage(message, message_params);
 	return this;
-}
+};
 
 //---------------------------------------
 // Handles the messages common to all controllers (listed in Behave3d.Controller.common_messages)
-// Returns true if message has been handled (and hense should not be handled by the controller's message()), false otherwise
+// @param {String} message A string containing the (usually one-word) message
+// @param {Object|Array} message_params An object {param_name: value...} or array [[param_name, value], ...] containing the message params
+// @returns {Boolean} True if message has been handled (and hense should not be handled by the controller's message()), false otherwise
 Behave3d.Controller.prototype.handleCommonMessage = function(message, message_params)
 {
 	Behave3d.debugOut("Message received: '" + message + "' by " + this.debugName());
@@ -1930,14 +2062,15 @@ Behave3d.Controller.prototype.handleCommonMessage = function(message, message_pa
 		Behave3d.debugExit(this.debugName() + " received unknown message '" + message + "'");
 		
 	return true;
-}
+};
 
 //---------------------------------------
 // Creates an event listener to this controller or another controller
-// event_to_wait_for - array of, or single value in the format: "[[milliseconds] after] [DOM id or "@targets"] [controller id] event_name" / milliseconds
-// handler_function_or_message - handler function(event_type, event_params) or "message" to receive upon the event
-// If return_targets is false, returns this for method chaining
-// Else returns an object (or array of such objects if event_to_wait_for is array) with the resolved target of the created event listener {element: target_element, controller: target_controller, event: name_of_event}
+// @param {String|Array|Number} event_to_wait_for Array of, or single value in the format: "[[milliseconds] after] [DOM id or "@targets"] [controller id] event_name", or [milliseconds]
+// @param {Function|String} handler_function_or_message A handler function(event_type, event_params) or "message" to receive upon the event
+// @param {Boolean} return_targets If false, returns this for method chaining,
+//                                 else returns an object (or array of such objects if event_to_wait_for is array) with the resolved target of the created event listener {element: target_element, controller: target_controller, event: name_of_event}
+// @returns {Behave3d.Controller|Object|Array} See param return_targets
 Behave3d.Controller.prototype.on = function(event_to_wait_for, handler_function_or_message, return_targets)
 {
 	var target = {
@@ -2004,7 +2137,7 @@ Behave3d.Controller.prototype.on = function(event_to_wait_for, handler_function_
 			handler_function_or_message.bind(this);
 			
 	var delayed_handler_function = delay ?
-			function(event_type, event_params) { setTimeout(function() {handler_function(event_type, event_params);}, delay)} :
+			function(event_type, event_params) { window.setTimeout(function() {handler_function(event_type, event_params);}, delay);} :
 			handler_function;
 	
 	for(var i = 0; i < targets.length; i++)
@@ -2019,21 +2152,62 @@ Behave3d.Controller.prototype.on = function(event_to_wait_for, handler_function_
 		return (targets.length > 1) ? targets : targets[0];
 	else
 		return this;
-}
+};
+
+//---------------------------------------
+// Removes event listeners to this controller
+// @param {String|Array} event Array of, or single name of event
+// @param {Function} handler_function If supplied, only this listener will be removed; if not supplied - all listeners for the event will be removed
+// @returns {Behave3d.Controller} Returns this for method chaining
+Behave3d.Controller.prototype.off = function(event, handler_function)
+{
+	if (Array.isArray(event))
+		for(var i = 0; i < event.length; i++)
+			this.off(event[i], handler_function);
+
+	if (handler_function)
+		this.removeEventHandler(event, handler_function);
+	else
+		// Remove all handlers for this event
+		delete this.event_handlers[event];	
+	
+	return this;
+};
 
 //---------------------------------------
 // Creates an event listener to this controller
+// @param {String} event Name of event
+// @param {Function} handler_function A handler function(event_type, event_params) to call upon the event
 Behave3d.Controller.prototype.addEventHandler = function(event, handler_function)
 {
 	if (!this.event_handlers[event]) this.event_handlers[event] = [];
 	this.event_handlers[event].push(handler_function);
 	
-	Behave3d.debugOut("Handler created: " + this.debugName() + ".addEventHandler('" + event + "')");
-}
+	Behave3d.debugOut("Handler created: '" + event + "' on " + this.debugName());
+};
+
+//---------------------------------------
+// Removes an event listener from this controller
+// @param {String|Array} event Array of, or single name of event
+// @param {Function} handler_function All instances of this listener will be removed
+Behave3d.Controller.prototype.removeEventHandler = function(event, handler_function)
+{
+	if (!this.event_handlers[event]) return;
+	var handlers = this.event_handlers[event];	
+
+	// Remove all occurances of the handler in the list of handlers
+	if (handlers.indexOf(handler_function) >= 0) {
+		for (var i = handlers.length - 1; i >= 0; i--)
+			if (handlers[i] === handler_function)
+				handlers.splice(i, 1);
+		Behave3d.debugOut("Handler removed: '" + event + "' on " + this.debugName());
+	}
+};
 
 //---------------------------------------
 // Creates event handlers on this controller that fire events on another controller upon firing on this controller
-// Format of events_map: { event_name: "event_name_on_controller_to_relay_to", ...}
+// @param {Behave3d.Controller} controller_to_relay_to Reference to another controller
+// @param {Object} events_map Object of format: { event_name: "event_name_on_controller_to_relay_to", ...}
 Behave3d.Controller.prototype.relayEvents = function(controller_to_relay_to, events_map)
 {
 	for(var event in events_map)
@@ -2042,12 +2216,14 @@ Behave3d.Controller.prototype.relayEvents = function(controller_to_relay_to, eve
 				controller_to_relay_to.fireEvent(events_map[event], event_params);
 			});
 		}).bind(this)(event, events_map[event], controller_to_relay_to);
-}
+};
 
 //---------------------------------------
 // Fires an event and calls all respective callbacks
-// event_scope: controller/local/global/parents/children/p_and_c
-// Returns the number of callbacks called
+// @param {String} event_type Name of event
+// @param {Object|Array} event_params An object {param_name: value...} or array [[param_name, value], ...] containing the event params
+// @param {String} event_scope Can be "controller"(is default) / "local" / "global" / "parents" / "children" / "p_and_c"
+// @returns {Number} The number of callbacks called
 Behave3d.Controller.prototype.fireEvent = function(event_type, event_params, event_scope)
 {
 	if (event_scope === undefined) event_scope = "controller";
@@ -2066,11 +2242,12 @@ Behave3d.Controller.prototype.fireEvent = function(event_type, event_params, eve
 	}
 	else
 		return this.owner.fireEvent(event_type, event_params, event_scope);
-}
+};
 
 //---------------------------------------
 // Returns a reference to another controller supplied by its id
-// controller_id can also be a space-separated 2-items string "dom_element_id controller_id"
+// @param {String} controller_id Controller id or a space-separated 2-items string "dom_element_id controller_id"
+// @returns {Behave3d.Controller} Reference to the required controller
 Behave3d.Controller.prototype.getAnotherController = function(controller_id)
 {
 	var controller_path = controller_id.split(" ");
@@ -2078,11 +2255,15 @@ Behave3d.Controller.prototype.getAnotherController = function(controller_id)
 		return this.owner.getController(controller_id) || Behave3d.debugExit(this.debugName + " cannot find another controller with id = '" + controller_id + "'");
 	else
 		return Behave3d(controller_id, false);
-}
+};
 
 //---------------------------------------
 // Returns an object with the computed values of the supplied length params
-// If allow_non_lengths is true, then the params are allowed to have any string value; allow_non_lengths can also be an array containing all allowed non-length string values
+// @param {Array} x_params Array with names of properties of this controller containing X sizes/lengths/etc.
+// @param {Array} y_params Array with names of properties of this controller containing Y sizes/lengths/etc.
+// @param {Array} z_params Array with names of properties of this controller containing Z sizes/lengths/etc.
+// @param {Boolean|Array} allow_non_lengths If true, then the params are allowed to have any string value; allow_non_lengths can also be an array containing all allowed non-length string values
+// @returns {Object} Object of format {param_name: computed_value, ...}
 Behave3d.Controller.prototype.getComputedLengths = function(x_params, y_params, z_params, allow_non_lengths)
 {
 	var params = {};	
@@ -2099,17 +2280,21 @@ Behave3d.Controller.prototype.getComputedLengths = function(x_params, y_params, 
 			params[z_params[i]] = Behave3d.params.getLength(this[z_params[i]], "Z", this.owner.element, allow_non_lengths);
 	
 	return params;
-}
+};
 
 //---------------------------------------
 // Returns a reference to the controller's target behave3d element with index target_index in the list of controller's targets
+// @param {Number} target_index Index of target in the list of the controller's targets
+// @param {Behave3d.Element} A reference to the target DOM element's behave3d element
 Behave3d.Controller.prototype.getTarget = function(target_index)
 {
 	return this.targets[target_index][Behave3d.consts.BEHAVE3D_PROPERTY];
-}
+};
 
 //---------------------------------------
-// Checks if the controller targets are behave3d-initialized, and creates their behave3d elements if they are not
+// Checks if the controller's targets are behave3d-initialized, and creates their behave3d elements if they are not
+// @param {Boolean} [add_to_pool] Whether to add the eventual newly-created behave3d elements to the behave3d pool of elements (defaults to true)
+// @returns {Behave3d.Controller} Returns this for method chaining
 Behave3d.Controller.prototype.makeTargetsDom3d = function(add_to_pool)
 {
 	if (add_to_pool === undefined) add_to_pool = true;
@@ -2121,26 +2306,38 @@ Behave3d.Controller.prototype.makeTargetsDom3d = function(add_to_pool)
 	}
 	
 	return this;
-}
+};
 
 //---------------------------------------
 // Adds event handlers (listed in action_handles) that send messages to this controller upon behave3d element actions_target's actions
-// Adds event handlers (listed in event_handles) that fire actions events for this element upon events of this controller
+// Also adds event handlers (listed in event_handles) that fire actions events for this element upon events of this controller
 // Sets flag this.actions_registered = true
-// actions_target - false / true / "500" / "500 dom_element_id" - give delay in milliseconds (default is 0) and id of action target (default is this element)
-// Format of action_handles: { show: "show", hide: "hide", ...} or "showhide"
-// Format of event_handles: { show_start: "fade_in_start", show_end: ["fade_in_end", "another_end"], ...} or "showhide"
+// @param {Boolean|String|Number} actions_target Can be: false / true / "reverse" / "500" / "500 dom_element_id" - give delay in milliseconds (default is 0) and id of action target (default is this element)
+// @param {Object|String} action_handles Object of format { show: "show", hide: "hide", ...}, or "showhide"
+// @param {Object|String} event_handles Object of format { show_start: "fade_in_start", show_end: ["fade_in_end", "another_end"], ...}, or "showhide"
+// @returns {Behave3d.Controller} Returns this for method chaining
 Behave3d.Controller.prototype.registerActions = function(actions_target, action_handles, event_handles)
 {
+	function swap_props(object, prop1, prop2) {
+		var val1 = object[prop1];
+		object[prop1] = object[prop2];
+		object[prop2] = val1;
+	}
+	
 	if (!actions_target) return this;
 	
 	var delay   = 0;
 	var element = "";
+	var reverse = false;
 	
 	if (typeof actions_target == "string" &&
 		actions_target.length > 0)
 	{
 		var at_parts = actions_target.split(" ");
+		if (at_parts[0] == "reverse") {
+			reverse = true;
+			at_parts = at_parts.splice(1);
+		}
 		delay = Number(at_parts[0]);
 		element = at_parts[1] || "";
 	}
@@ -2160,6 +2357,21 @@ Behave3d.Controller.prototype.registerActions = function(actions_target, action_
 		action_handles = {};
 		for(var i = 0; i < actions_list.length; i++)
 			action_handles[actions_list[i]] = actions_list[i];
+	}
+
+	// Swap all show & hide actions and event handles
+	if (reverse) {		
+		for (var action in action_handles)
+			if (action == "show")
+				swap_props(action_handles, "show", "hide");
+			else if (action == "show_immediately")
+				swap_props(action_handles, "show_immediately", "hide_immediately");
+
+		for (var action_event in event_handles)
+			if (action_event == "show_start")
+				swap_props(event_handles, "show_start", "hide_start");
+			else if (action_event == "show_end")
+				swap_props(event_handles, "show_end", "hide_end");
 	}
 	
 	for (var action in action_handles) {
@@ -2193,10 +2405,11 @@ Behave3d.Controller.prototype.registerActions = function(actions_target, action_
 	
 	this.actions_registered = true;
 	return this;
-}
+};
 
 //---------------------------------------
 // Registers event handlers on this controller that make its sub-controllers get paused/ect. whenever this controller is paused/etc.
+// @param {Array} sub_controllers Array of references to other controllers
 Behave3d.Controller.prototype.setSubcontrollersEvents = function(sub_controllers)
 {
 	var this_controller = this;
@@ -2206,12 +2419,13 @@ Behave3d.Controller.prototype.setSubcontrollersEvents = function(sub_controllers
 		for(var i = 0; i < sub_controllers.length; i++)
 			sub_controllers[i].set({paused: this.paused});
 	});
-}
+};
 
 //---------------------------------------
 // Checks if the controller targets are behave3d-initialized, and creates their behave3d elements if they are not
-// number_limit limits the number of targets
-// Returns an object with information which targets are added and which are removed, compared with current targets, format:
+// @param {Number} number_limit Limits the number of targets (defaults to -1, i.e. no limit)
+// @param {Boolean} [add_to_pool] Whether to add the newly-created behave3d elements to the behave3d pool of elements (defaults to true)
+// @returns {Object} An object with information which targets are added and which are removed, compared with current targets, format:
 // {
 //   removed: [
 //      {first_pos: index of first removed element, last_pos: index of last removed element, elements: [DOM_element, ...]},
@@ -2295,12 +2509,14 @@ Behave3d.Controller.prototype.setChildTargets = function(number_limit, add_to_po
 	}
 	
 	return diff;
-}
+};
 
 //---------------------------------------
 // Adds a transform to the controller's target
-// Format of transform - see Behave3d.transforms
-// If target_index is not supplied, then the transform will be added to each of the controller targets
+// @param {Object} transform See Behave3d.transforms for details
+// @param {Number} [target_index] Index of target to apply the transform to;
+//                                If not supplied, then the transform will be added to each of the controller targets
+// @returns {Behave3d.Controller} Returns this for method chaining
 Behave3d.Controller.prototype.addTransform = function(transform, target_index)
 {
 	if (target_index === undefined)
@@ -2310,11 +2526,15 @@ Behave3d.Controller.prototype.addTransform = function(transform, target_index)
 		this.getTarget(target_index).addTransform(transform);
 		
 	return this;
-}
+};
 
 //---------------------------------------
 // Apply "elastic" acceleration to this element's target proportional to distance from attractor_pos
-// If max_len > 0, then the spring force becomes very strong as the "spring" stretches close to max_len
+// @param {Object} attractor_pos An object {x: pos_x, y: pox_y, z: pos_z} containing the attractor position relative to the target's pivot point (position before transforms)
+// @param {Number} force_multiplier Spring parameter (higher values -> faster springing)
+// @param {Number} max_len If > 0, then the spring force becomes very strong as the "spring" stretches close to max_len
+// @param {Number} [target_index] Index of target to apply the physical force to;
+//                                If not supplied, then the physical force will be applied to each of the controller targets
 Behave3d.Controller.prototype.applySpringForce = function(attractor_pos, force_multiplier, max_len, target_index)
 {
 	if (force_multiplier == 0) return;
@@ -2348,12 +2568,15 @@ Behave3d.Controller.prototype.applySpringForce = function(attractor_pos, force_m
 	acc.x += dx * force_multiplier;
 	acc.y += dy * force_multiplier;
 	acc.z += dz * force_multiplier;
-}
+};
 
 //---------------------------------------
 // Apply acceleration to this element's target proportional to the inverse square of the distance to attractor_pos
-// If max_len > 0, then the spring force becomes very strong as the "spring" stretches close to max_len
-// attractor_pos is in coordinates relative to this element's pivot point (position before transforms)
+// @param {Object} attractor_pos An object {x: pos_x, y: pox_y, z: pos_z} containing the attractor position relative to the target's pivot point (position before transforms)
+// @param {Number} force_multiplier Spring parameter (higher values -> faster springing)
+// @param {Number} scale_multiplier Spring parameter (higher values -> slower springing)
+// @param {Number} [target_index] Index of target to apply the physical force to;
+//                                If not supplied, then the physical force will be applied to each of the controller targets
 Behave3d.Controller.prototype.applyGravityForce = function(attractor_pos, force_multiplier, scale_multiplier, target_index)
 {
 	if (force_multiplier == 0) return;
@@ -2382,10 +2605,13 @@ Behave3d.Controller.prototype.applyGravityForce = function(attractor_pos, force_
 		acc.y += gravity_strength * dy / distance;
 		acc.z += gravity_strength * dz / distance;
 	}
-}
+};
 
 //---------------------------------------
 // Reduces the speed of the supplied target by multiplying it to damping_factor
+// @param {Number} damping_factor A number between 0 and 1 to multiply the target's velocity to (lower values -> quicker damping of speed)
+// @param {Number} [target_index] Index of target to apply the damping to;
+//                                If not supplied, then the damping will be applied to each of the controller targets
 Behave3d.Controller.prototype.applySpeedDamping = function(damping_factor, target_index)
 {
 	if (damping_factor == 1) return;
@@ -2401,12 +2627,13 @@ Behave3d.Controller.prototype.applySpeedDamping = function(damping_factor, targe
 	v.x *= this.damping_factor;
 	v.y *= this.damping_factor;
 	v.z *= this.damping_factor;
-}
+};
 
 
 //---------------------------------------
 // Returns a coordinates object {x, y, z} that contains the summed coordinates of the supplied controllers' .path_pos properties
-// controllers is an array [controller_ref, ...]
+// @param {Array} controllers An array of controller references
+// @returns {Object} An object of format {x: pos_x, y: pos_y, z: pos_z}
 Behave3d.Controller.prototype.getPathPos = function(controllers)
 {
 	var path_pos = { x: 0, y: 0, z: 0 };
@@ -2420,15 +2647,16 @@ Behave3d.Controller.prototype.getPathPos = function(controllers)
 	}
 	
 	return path_pos;
-}
+};
 
 //---------------------------------------
-// Returns a string with the element's name, useful for debug
+// Returns a string with the controller's name, useful for debug
+// @returns {String} String with this controller's debug "name"
 Behave3d.Controller.prototype.debugName = function()
 {
 	return (this.owner ? this.owner.debugName() : "UnassignedController") +
 			":" + this.id + "(#" + this.unique_id + " " + this.title + ")";
-}
+};
 
 
 
@@ -2442,6 +2670,13 @@ Behave3d.Controller.prototype.debugName = function()
 //------------------------------------------------------------------------------------------------------------------------
 // Behave3d.StepEngine
 //------------------------------------------------------------------------------------------------------------------------
+// A StepEngine is responsible for incrementing its variables on every frame, so that their values move towards a set destination
+// Creates a new step engine used by events_controller
+// @param {Object} vars An object containing variable_name-value pairs {var_name: initial_value, ...}
+// @param {Boolean} is_circular Whether the coordinate space of the variables is circular; in such case the cycle size is supplied via options.cycle_len (it defaults to Behave3d.consts.ROTATE_ONE_TURN)
+// @param {Behave3d.Controller} events_controller The controller using this step engine; the step engine will fire events on behalf of the controller
+// @param {Object|Behave3d.Controller} options An object containg the values of the step engine options; in most cases this is the controller's instance itself;
+//                                             See Behave3d.StepEngine.default_options for a list of all options and their default values
 Behave3d.StepEngine = function(vars, is_circular, events_controller, options)
 {
 	this.is_circular       = is_circular;
@@ -2460,12 +2695,10 @@ Behave3d.StepEngine = function(vars, is_circular, events_controller, options)
 	
 	if (this.var_names.length == 0) Behave3d.debugExit("Behave3d.StepEngine() contructor received empty 'vars' object");
 	
-	if (this.options.ease_type    === undefined) this.options.ease_type    = "linear";
-	if (this.options.ease_amount  === undefined) this.options.ease_amount  = 1;
-	if (this.options.ease_mirror  === undefined) this.options.ease_mirror  = false;
-	if (this.options.half_step    === undefined) this.options.half_step    = 1;
-	if (this.options.spring_acc   === undefined) this.options.spring_acc   = 0;
-	if (this.options.spring_vdamp === undefined) this.options.spring_vdamp = 1;
+	// Set default values of missing options
+	for (var option_name in Behave3d.StepEngine.default_options)
+		if (this.options[option_name] === undefined)
+			this.options[option_name] = Behave3d.StepEngine.default_options[option_name];
 	
 	if (this.is_circular) {
 		if (this.options.marked_angle === undefined) this.options.marked_angle = -1;
@@ -2473,7 +2706,7 @@ Behave3d.StepEngine = function(vars, is_circular, events_controller, options)
 	}
 	
 	this.stop();
-}
+};
 
 //---------------------------------------
 Behave3d.StepEngine.events = [
@@ -2484,20 +2717,35 @@ Behave3d.StepEngine.events = [
 	"cycle_back", "mark_back"
 ];
 
+Behave3d.StepEngine.default_options = {
+	ease_type             : "linear",
+	ease_amount           : 1,
+	ease_mirror           : false,
+	half_step             : 1,
+	spring_acc            : 0,
+	spring_vdamp          : 1,
+	always_fire_start_end : true
+};
+
 //---------------------------------------
 Behave3d.StepEngine.prototype = {};
 
 
 //---------------------------------------
 // Returns the current value of a stepper variable
+// @param {String} var_name Name of variable
+// @param {Boolean} without_lag Whether to return the current value of the variable without lagging
+// @returns {Number} Current value of the stepper variable
 Behave3d.StepEngine.prototype.getVar = function(var_name, without_lag)
 {
 	return (without_lag ? this.vars[var_name] : this.lagged_vars[var_name]);
-}
+};
 
 //---------------------------------------
 // Sets a new value to a stepper variable
-// If keep_lag is set to true, then the current values for the variable's inertia are kept
+// @param {String} var_name Name of variable
+// @param {Number} value New value of the stepper variable
+// @param {Boolean} keep_lag If set to true, then the current values for the variable's inertia are kept
 Behave3d.StepEngine.prototype.setVar = function(var_name, value, keep_lag)
 {
 	this.vars[var_name]        = value;
@@ -2506,7 +2754,7 @@ Behave3d.StepEngine.prototype.setVar = function(var_name, value, keep_lag)
 		this.lagged_vars[var_name] = value;
 		this.vars_speeds[var_name] = 0;
 	}
-}
+};
 
 //---------------------------------------
 // Stops any current movement
@@ -2514,10 +2762,13 @@ Behave3d.StepEngine.prototype.stop = function()
 {
 	this.direction = 0;
 	this.pos       = 0;
-}
+};
 
 //---------------------------------------
 // Starts a new movement (with supplied duration) from current position to relative target = current position + movement
+// @param {Object} movement Object containing target positions for the variables relative to their current positions, format: {var_name1: dval, ...}
+// @param {Number} duration Duration in milliseconds of the movement
+// @param {Boolean} [is_new_movement] The movement is set only if this param is true or there is no currently-set movement; defaults to true
 Behave3d.StepEngine.prototype.setMovement = function(movement, duration, is_new_movement)
 {
 	if (is_new_movement === undefined) is_new_movement = true;
@@ -2538,20 +2789,24 @@ Behave3d.StepEngine.prototype.setMovement = function(movement, duration, is_new_
 	}
 
 	return true;
-}
+};
 
 //---------------------------------------
-// Starts a new movement (with supplied duration) from current position to relative target = current position + movement
+// Returns true if the stepper is currently in movement
+// @returns {Boolean} Whether is currently moving (forward or backward)
 Behave3d.StepEngine.prototype.isMoving = function()
 {
 	return (this.direction != 0);
-}
+};
 
 //---------------------------------------
-// Initializes variables for start of movement in the supplied direction (movement_direction = -1/1)
-// If already moving in this direction, then current movement continues
-// If from_beginning is true, then movement will not be continued, but new movement will start from the direction's starting position
-// If is_new_movement is true, then current movement will not be continued
+// Initializes variables for start of movement in the supplied direction.
+// If already moving in this direction, then current movement continues.
+// @param {Number} movement_direction Can be 1 (forward direction) or -1 (backward direction)
+// @param {Boolean} from_beginning If true, then movement will not be continued, but new movement will start from the direction's starting position
+// @param {Boolean} is_new_movement If true, then current movement will not be continued
+// @param {Object} movement Object containing target positions for the variables relative to their current positions, format: {var_name1: dval, ...}
+// @param {Number} duration Duration in milliseconds of the movement
 Behave3d.StepEngine.prototype.start = function(movement_direction, from_beginning, is_new_movement, movement, duration)
 {
 	if (movement_direction === undefined) movement_direction = 1;
@@ -2581,7 +2836,7 @@ Behave3d.StepEngine.prototype.start = function(movement_direction, from_beginnin
 	else if (this.pos > 1) this.pos = 1;
 	
 	this.movement_dpos = (from_beginning || is_new_movement) ? 1 : (movement_direction == 1 ? 1 - this.pos : this.pos);
-	if (this.movement_dpos > 0) {
+	if (this.movement_dpos > 0 || this.options.always_fire_start_end) {
 		this.total_frames  = Math.round(this.duration * this.movement_dpos / Behave3d.vars.frameDuration);
 		this.frames_left   = this.total_frames;
 		this.direction     = movement_direction;
@@ -2595,11 +2850,12 @@ Behave3d.StepEngine.prototype.start = function(movement_direction, from_beginnin
 		this.direction = 0;
 
 	return true;
-}
+};
 
 //---------------------------------------
 // Called on every frame, this method updates the vars and fires events
-// Returns true upon finishing the current movement, false in all other cases (no movement or during movement)
+// @param {Boolean} is_paused Whether the stepper is currently paused; when paused it processes only the lag, but does not progress the current movement
+// @returns {Boolean} Returns true upon finishing the current movement, false in all other cases (no movement or during movement)
 Behave3d.StepEngine.prototype.update = function(is_paused)
 {
 	var is_end_of_movement = false;
@@ -2618,7 +2874,7 @@ Behave3d.StepEngine.prototype.update = function(is_paused)
 				this.events_controller.fireEvent("start" + this.events_suffix);
 		
 		if (this.events_controller &&
-			this.frames_left == this.total_frames / 2)
+			this.frames_left == Math.floor(this.total_frames / 2))
 				this.events_controller.fireEvent("half" + this.events_suffix);
 
 		if (this.is_circular) {
@@ -2676,7 +2932,7 @@ Behave3d.StepEngine.prototype.update = function(is_paused)
 			this.lagged_vars[var_name] = this.vars[var_name];
 	
 	return is_end_of_movement;
-}
+};
 
 
 //---------------------------------------

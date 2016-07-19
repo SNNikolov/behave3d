@@ -10,7 +10,7 @@
 Behave3d.controllerList = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerList.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -213,7 +213,7 @@ Behave3d.controllerList.prototype.setItems = function()
 	}
 	
 	return update_results;
-}
+};
 
 Behave3d.registerController("list", Behave3d.controllerList);
 

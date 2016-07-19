@@ -10,7 +10,7 @@
 Behave3d.controllerPopRot = function(params)
 {
 	Behave3d.Controller.call(this, params);
-}
+};
 
 Behave3d.controllerPopRot.prototype = Object.create(Behave3d.Controller.prototype);
 
@@ -115,7 +115,7 @@ Behave3d.controllerPopRot.prototype.setEventHandlers = function()
 	});
 	
 	this.registerActions(this.register_actions, "showhide", "showhide");
-}
+};
 
 Behave3d.registerController("popRot", Behave3d.controllerPopRot);
 
