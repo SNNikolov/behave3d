@@ -1,0 +1,1 @@
+"use strict";(a=>{var b=document.documentElement.style;if(b.transform!==void 0)a.CSS_TRANSFORMS_PREFIX="";else if(b.webkitTransform!==void 0)a.CSS_TRANSFORMS_PREFIX="webkit";else if(b.mozTransform!==void 0)a.CSS_TRANSFORMS_PREFIX="moz"})(window.behave3dConstants=window.behave3dConstants||{});
