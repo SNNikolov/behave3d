@@ -1,24 +1,23 @@
 {
   "name": "behave3d",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "Javascript lib for dynamic 3D behavior of HTML elements",
   "license": "MIT",
   "homepage": "http://behave3d.net",
-  "repository": "SNNikolov/behave3d", 
+  "repository": "SNNikolov/behave3d",
   "bugs": "https://github.com/SNNikolov/behave3d/issues",
   "contributors": [
     "Stefan Nikolov <stefan@behave3d.com>"
   ],
-  
-  "main": "dist/Behave3d_ES6Wrapper.js",  
+  "main": "dist/Behave3d_ES6Wrapper.js",
   "scripts": {
     "build": "gulp && gulp minify"
-  },  
-  "dependencies": {},  
+  },
+  "dependencies": {},
   "devDependencies": {
     "gulp": "3.9.1",
     "gulp-babel": "6.1.2",
-	"babel-preset-es2015": "6.13.2",
-	"gulp-babel-minify": "0.1.12"
-  }  
+    "babel-preset-es2015": "6.13.2",
+    "gulp-babel-minify": "0.1.12"
+  }
 }
